@@ -1,7 +1,0 @@
-main = ".open-next/worker.js"
-name = "hitori"
-compatibility_date = "2025-03-25"
-compatibility_flags = ["nodejs_compat"]
-[assets]
-directory = "./public"
-binding = "ASSETS"
