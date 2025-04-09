@@ -1,0 +1,42 @@
+services:
+  front:
+    build:
+      context: ./front/
+      dockerfile: Dockerfile.dev
+    ports:
+      - 3000:3000
+    volumes:
+      - ./front:/app
+    depends_on:
+      - back
+    tty: true
+    stdin_open: true
+
+  back:
+    build:
+      context: ./back/
+      dockerfile: Dockerfile.dev
+    ports:
+      - 8000:8000
+    volumes:
+      - ./back:/app
+    depends_on:
+      - db
+    tty: true
+    stdin_open: true
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    ports:
+      - 5432:5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: always
+    container_name: hitori_db
+
+volumes:
+  db_data:
