@@ -1,28 +1,36 @@
 package card
 
-import "unicode/utf8"
-
-const (
-	MinCardNumber  = 1
-	MaxCardNumber  = 100
-	MaxWordLength  = 25
-	MaxGuestNameLength = 10
+import (
+	"time"
+	"unicode/utf8"
 )
 
-// TODO: IsConfirmed, MatchPoints, ExpiresAt, CreatedAt, UpdatedAt を追加予定
+const (
+	MinCardNumber      = 1
+	MaxCardNumber      = 100
+	MaxWordLength      = 25
+	MaxGuestNameLength = 10
+	ProvisionalTTL     = 24 * time.Hour
+)
+
+// TODO: CreatedAt, UpdatedAt を追加予定
+// NewInput は Card 生成時の入力値。Card とフィールドが異なるため分離している
 type Card struct {
-	Number    int
-	Word      string
-	ProfileID *int64
-	GuestName *string
+	Number      int
+	Word        string
+	ProfileID   *int64
+	GuestName   *string
+	IsConfirmed bool
+	MatchPoints int
+	ExpiresAt   *time.Time
 }
 
-// NewInput は Card 生成時の入力値。Card とフィールドが異なるため分離している
 type NewInput struct {
 	Number    int
 	Word      string
 	ProfileID *int64
 	GuestName *string
+	Now       time.Time
 }
 
 func New(input NewInput) (*Card, error) {
@@ -41,10 +49,27 @@ func New(input NewInput) (*Card, error) {
 		}
 	}
 
+	expiresAt := input.Now.Add(ProvisionalTTL)
 	return &Card{
-		Number:    input.Number,
-		Word:      input.Word,
-		ProfileID: input.ProfileID,
-		GuestName: input.GuestName,
+		Number:      input.Number,
+		Word:        input.Word,
+		ProfileID:   input.ProfileID,
+		GuestName:   input.GuestName,
+		IsConfirmed: false,
+		MatchPoints: 0,
+		ExpiresAt:   &expiresAt,
 	}, nil
+}
+
+func (c *Card) Confirm(word string) error {
+	if c.IsConfirmed {
+		return ErrAlreadyConfirmed
+	}
+	if utf8.RuneCountInString(word) == 0 || utf8.RuneCountInString(word) > MaxWordLength {
+		return ErrInvalidWord
+	}
+	c.Word = word
+	c.IsConfirmed = true
+	c.ExpiresAt = nil
+	return nil
 }
