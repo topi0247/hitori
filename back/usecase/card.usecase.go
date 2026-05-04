@@ -17,12 +17,28 @@ const (
 var ErrInvalidCardAmount = errors.New("invalid_card_amount")
 
 type CardUsecase struct {
-	cardRepository  repository.CardRepository
-	themeRepository repository.ThemeRepository
+	cardRepository    repository.CardRepository
+	themeRepository   repository.ThemeRepository
+	profileRepository repository.ProfileRepository
 }
 
-func NewCardUsecase(cardRepository repository.CardRepository, themeRepository repository.ThemeRepository) *CardUsecase {
-	return &CardUsecase{cardRepository: cardRepository, themeRepository: themeRepository}
+func NewCardUsecase(cardRepository repository.CardRepository, themeRepository repository.ThemeRepository, profileRepository repository.ProfileRepository) *CardUsecase {
+	return &CardUsecase{
+		cardRepository:    cardRepository,
+		themeRepository:   themeRepository,
+		profileRepository: profileRepository,
+	}
+}
+
+func (u *CardUsecase) resolveProfileID(ctx context.Context, authUserID string) (*int64, error) {
+	if authUserID == "" {
+		return nil, nil
+	}
+	p, err := u.profileRepository.FetchByAuthUserID(ctx, authUserID)
+	if err != nil {
+		return nil, err
+	}
+	return &p.ID, nil
 }
 
 // --- Create ---
@@ -31,7 +47,7 @@ type CreateInput struct {
 	ThemeID    int64
 	CardNumber int
 	Word       string
-	ProfileID  *int64
+	AuthUserID string
 	GuestName  *string
 	Now        time.Time
 }
@@ -55,11 +71,16 @@ func (u *CardUsecase) Create(ctx context.Context, input CreateInput) (*CreateOut
 		return nil, err
 	}
 
+	profileID, err := u.resolveProfileID(ctx, input.AuthUserID)
+	if err != nil {
+		return nil, err
+	}
+
 	c, err := domainCard.New(domainCard.NewInput{
 		ThemeID:   input.ThemeID,
 		Number:    input.CardNumber,
 		Word:      input.Word,
-		ProfileID: input.ProfileID,
+		ProfileID: profileID,
 		GuestName: input.GuestName,
 		Now:       input.Now,
 	})
@@ -81,8 +102,10 @@ func (u *CardUsecase) Create(ctx context.Context, input CreateInput) (*CreateOut
 // --- Confirm ---
 
 type ConfirmInput struct {
-	ID   int64
-	Word string
+	ID         int64
+	Word       string
+	AuthUserID string
+	GuestName  *string
 }
 
 type ConfirmOutput struct {
@@ -94,6 +117,15 @@ type ConfirmOutput struct {
 func (u *CardUsecase) Confirm(ctx context.Context, input ConfirmInput) (*ConfirmOutput, error) {
 	c, err := u.cardRepository.FetchByID(ctx, input.ID)
 	if err != nil {
+		return nil, err
+	}
+
+	profileID, err := u.resolveProfileID(ctx, input.AuthUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.VerifyOwner(profileID, input.GuestName); err != nil {
 		return nil, err
 	}
 
@@ -114,15 +146,31 @@ func (u *CardUsecase) Confirm(ctx context.Context, input ConfirmInput) (*Confirm
 
 // --- Delete ---
 
-func (u *CardUsecase) Delete(ctx context.Context, id int64) error {
-	c, err := u.cardRepository.FetchByID(ctx, id)
+type DeleteInput struct {
+	ID         int64
+	AuthUserID string
+	GuestName  *string
+}
+
+func (u *CardUsecase) Delete(ctx context.Context, input DeleteInput) error {
+	c, err := u.cardRepository.FetchByID(ctx, input.ID)
 	if err != nil {
 		return err
 	}
 	if c.IsConfirmed {
 		return domainCard.ErrAlreadyConfirmed
 	}
-	return u.cardRepository.Delete(ctx, id)
+
+	profileID, err := u.resolveProfileID(ctx, input.AuthUserID)
+	if err != nil {
+		return err
+	}
+
+	if err := c.VerifyOwner(profileID, input.GuestName); err != nil {
+		return err
+	}
+
+	return u.cardRepository.Delete(ctx, input.ID)
 }
 
 // --- Available ---

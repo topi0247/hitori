@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 
+	"github.com/topi0247/hitori/handler/middleware"
 	"github.com/topi0247/hitori/usecase"
 )
 
@@ -79,6 +80,7 @@ func (h *CardHandler) Create(c *echo.Context) error {
 		ThemeID:    themeID,
 		CardNumber: req.CardNumber,
 		Word:       req.Word,
+		AuthUserID: middleware.AuthUserID(c),
 		GuestName:  req.GuestName,
 		Now:        time.Now(),
 	})
@@ -99,15 +101,18 @@ func (h *CardHandler) Confirm(c *echo.Context) error {
 	}
 
 	var req struct {
-		Word string `json:"word"`
+		Word      string  `json:"word"`
+		GuestName *string `json:"guest_name"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid_request")
 	}
 
 	out, err := h.usecase.Confirm(c.Request().Context(), usecase.ConfirmInput{
-		ID:   id,
-		Word: req.Word,
+		ID:         id,
+		Word:       req.Word,
+		AuthUserID: middleware.AuthUserID(c),
+		GuestName:  req.GuestName,
 	})
 	if err != nil {
 		return httpError(err)
@@ -125,8 +130,19 @@ func (h *CardHandler) Delete(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid_id")
 	}
 
-	if err := h.usecase.Delete(c.Request().Context(), id); err != nil {
+	var req struct {
+		GuestName *string `json:"guest_name"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid_request")
+	}
+
+	if err := h.usecase.Delete(c.Request().Context(), usecase.DeleteInput{
+		ID:         id,
+		AuthUserID: middleware.AuthUserID(c),
+		GuestName:  req.GuestName,
+	}); err != nil {
 		return httpError(err)
 	}
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }

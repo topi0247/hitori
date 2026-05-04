@@ -66,6 +66,22 @@ func New(input NewInput) (*Card, error) {
 	}, nil
 }
 
+func (c *Card) VerifyOwner(profileID *int64, guestName *string) error {
+	if c.ProfileID != nil {
+		if profileID == nil || *c.ProfileID != *profileID {
+			return ErrForbidden
+		}
+		return nil
+	}
+	if c.GuestName != nil {
+		if guestName == nil || *c.GuestName != *guestName {
+			return ErrForbidden
+		}
+		return nil
+	}
+	return ErrForbidden
+}
+
 func (c *Card) Confirm(word string) error {
 	if c.IsConfirmed {
 		return ErrAlreadyConfirmed

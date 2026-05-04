@@ -210,6 +210,35 @@ func TestCard_Confirm_InvalidWord(t *testing.T) {
 	}
 }
 
+func TestCard_VerifyOwner(t *testing.T) {
+	profileID1 := int64(1)
+	profileID2 := int64(2)
+
+	tests := []struct {
+		name      string
+		c         *card.Card
+		profileID *int64
+		guestName *string
+		wantErr   error
+	}{
+		{"登録ユーザーのカード・本人", &card.Card{ProfileID: &profileID1}, &profileID1, nil, nil},
+		{"登録ユーザーのカード・他人", &card.Card{ProfileID: &profileID1}, &profileID2, nil, card.ErrForbidden},
+		{"登録ユーザーのカード・未認証", &card.Card{ProfileID: &profileID1}, nil, nil, card.ErrForbidden},
+		{"ゲストのカード・本人", &card.Card{GuestName: strPtr("ゲスト")}, nil, strPtr("ゲスト"), nil},
+		{"ゲストのカード・名前不一致", &card.Card{GuestName: strPtr("ゲスト")}, nil, strPtr("別のゲスト"), card.ErrForbidden},
+		{"ゲストのカード・名前なし", &card.Card{GuestName: strPtr("ゲスト")}, nil, nil, card.ErrForbidden},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.c.VerifyOwner(tt.profileID, tt.guestName)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("wantErr=%v, got err=%v", tt.wantErr, err)
+			}
+		})
+	}
+}
+
 func strPtr(s string) *string {
 	return &s
 }

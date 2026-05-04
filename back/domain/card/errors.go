@@ -10,4 +10,5 @@ var (
 	ErrAlreadyConfirmed      = errors.New("already_confirmed")
 	ErrThemeCardLimitReached = errors.New("theme_card_limit_reached")
 	ErrNotFound              = errors.New("not_found")
+	ErrForbidden             = errors.New("forbidden")
 )

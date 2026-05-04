@@ -11,7 +11,7 @@ type Usecases struct {
 
 func NewUsecases(repos *repository.Repositories) *Usecases {
 	return &Usecases{
-		Card:    NewCardUsecase(repos.Card, repos.Theme),
+		Card:    NewCardUsecase(repos.Card, repos.Theme, repos.Profile),
 		Theme:   NewThemeUsecase(repos.Theme),
 		Game:    NewGameUsecase(repos.Card, repos.PlayRecord),
 		Profile: NewProfileUsecase(repos.Profile),

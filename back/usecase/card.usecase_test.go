@@ -9,6 +9,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	domainCard "github.com/topi0247/hitori/domain/card"
+	domainProfile "github.com/topi0247/hitori/domain/profile"
 	domainTheme "github.com/topi0247/hitori/domain/theme"
 	"github.com/topi0247/hitori/usecase"
 	repositorymock "github.com/topi0247/hitori/usecase/repository/mock"
@@ -16,11 +17,12 @@ import (
 
 func strPtr(s string) *string { return &s }
 
-func newCardUsecase(ctrl *gomock.Controller) (*usecase.CardUsecase, *repositorymock.MockCardRepository, *repositorymock.MockThemeRepository) {
+func newCardUsecase(ctrl *gomock.Controller) (*usecase.CardUsecase, *repositorymock.MockCardRepository, *repositorymock.MockThemeRepository, *repositorymock.MockProfileRepository) {
 	cardRepository := repositorymock.NewMockCardRepository(ctrl)
 	themeRepository := repositorymock.NewMockThemeRepository(ctrl)
-	uc := usecase.NewCardUsecase(cardRepository, themeRepository)
-	return uc, cardRepository, themeRepository
+	profileRepository := repositorymock.NewMockProfileRepository(ctrl)
+	uc := usecase.NewCardUsecase(cardRepository, themeRepository, profileRepository)
+	return uc, cardRepository, themeRepository, profileRepository
 }
 
 // --- Create ---
@@ -29,7 +31,7 @@ func TestCreate_Success_Guest(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, themeRepository := newCardUsecase(ctrl)
+	uc, cardRepository, themeRepository, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	themeRepository.EXPECT().FetchByID(ctx, int64(1)).Return(&domainTheme.Theme{Title: "大きさ"}, nil)
@@ -48,11 +50,36 @@ func TestCreate_Success_Guest(t *testing.T) {
 	}
 }
 
+func TestCreate_Success_LoggedIn(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	uc, cardRepository, themeRepository, profileRepository := newCardUsecase(ctrl)
+	ctx := context.Background()
+
+	profileID := int64(10)
+	themeRepository.EXPECT().FetchByID(ctx, int64(1)).Return(&domainTheme.Theme{Title: "大きさ"}, nil)
+	cardRepository.EXPECT().CountByThemeID(ctx, int64(1)).Return(0, nil)
+	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").Return(&domainProfile.Profile{ID: profileID}, nil)
+	cardRepository.EXPECT().Save(ctx, gomock.Any()).Return(nil)
+
+	_, err := uc.Create(ctx, usecase.CreateInput{
+		ThemeID:    1,
+		CardNumber: 42,
+		Word:       "アリ",
+		AuthUserID: "user-uuid",
+		Now:        time.Now(),
+	})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 func TestCreate_ThemeNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, _, themeRepository := newCardUsecase(ctrl)
+	uc, _, themeRepository, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	themeRepository.EXPECT().FetchByID(ctx, int64(1)).Return(nil, domainTheme.ErrNotFound)
@@ -73,7 +100,7 @@ func TestCreate_CardLimitReached(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, themeRepository := newCardUsecase(ctrl)
+	uc, cardRepository, themeRepository, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	themeRepository.EXPECT().FetchByID(ctx, int64(1)).Return(&domainTheme.Theme{Title: "大きさ"}, nil)
@@ -95,7 +122,7 @@ func TestCreate_InvalidCard(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, themeRepository := newCardUsecase(ctrl)
+	uc, cardRepository, themeRepository, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	themeRepository.EXPECT().FetchByID(ctx, int64(1)).Return(&domainTheme.Theme{Title: "大きさ"}, nil)
@@ -115,11 +142,11 @@ func TestCreate_InvalidCard(t *testing.T) {
 
 // --- Confirm ---
 
-func TestConfirm_Success(t *testing.T) {
+func TestConfirm_Success_Guest(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, _ := newCardUsecase(ctrl)
+	uc, cardRepository, _, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	expiresAt := time.Now().Add(domainCard.ProvisionalTTL)
@@ -133,9 +160,58 @@ func TestConfirm_Success(t *testing.T) {
 	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(existing, nil)
 	cardRepository.EXPECT().Confirm(ctx, int64(1), "確定した言葉").Return(nil)
 
-	_, err := uc.Confirm(ctx, usecase.ConfirmInput{ID: 1, Word: "確定した言葉"})
+	_, err := uc.Confirm(ctx, usecase.ConfirmInput{ID: 1, Word: "確定した言葉", GuestName: strPtr("ゲスト")})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestConfirm_Success_LoggedIn(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	uc, cardRepository, _, profileRepository := newCardUsecase(ctrl)
+	ctx := context.Background()
+
+	profileID := int64(10)
+	expiresAt := time.Now().Add(domainCard.ProvisionalTTL)
+	existing := &domainCard.Card{
+		ID:        1,
+		Number:    42,
+		Word:      "仮の言葉",
+		ProfileID: &profileID,
+		ExpiresAt: &expiresAt,
+	}
+	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").Return(&domainProfile.Profile{ID: profileID}, nil)
+	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(existing, nil)
+	cardRepository.EXPECT().Confirm(ctx, int64(1), "確定した言葉").Return(nil)
+
+	_, err := uc.Confirm(ctx, usecase.ConfirmInput{ID: 1, Word: "確定した言葉", AuthUserID: "user-uuid"})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestConfirm_Forbidden(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	uc, cardRepository, _, _ := newCardUsecase(ctrl)
+	ctx := context.Background()
+
+	expiresAt := time.Now().Add(domainCard.ProvisionalTTL)
+	existing := &domainCard.Card{
+		ID:        1,
+		Number:    42,
+		Word:      "仮の言葉",
+		GuestName: strPtr("ゲスト"),
+		ExpiresAt: &expiresAt,
+	}
+	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(existing, nil)
+
+	_, err := uc.Confirm(ctx, usecase.ConfirmInput{ID: 1, Word: "確定した言葉", GuestName: strPtr("別のゲスト")})
+	if !errors.Is(err, domainCard.ErrForbidden) {
+		t.Errorf("wantErr=%v, got err=%v", domainCard.ErrForbidden, err)
 	}
 }
 
@@ -143,7 +219,7 @@ func TestConfirm_CardNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, _ := newCardUsecase(ctrl)
+	uc, cardRepository, _, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(nil, errors.New("not_found"))
@@ -158,13 +234,13 @@ func TestConfirm_AlreadyConfirmed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, _ := newCardUsecase(ctrl)
+	uc, cardRepository, _, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
-	existing := &domainCard.Card{ID: 1, Number: 42, Word: "確定済み", IsConfirmed: true}
+	existing := &domainCard.Card{ID: 1, Number: 42, Word: "確定済み", GuestName: strPtr("ゲスト"), IsConfirmed: true}
 	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(existing, nil)
 
-	_, err := uc.Confirm(ctx, usecase.ConfirmInput{ID: 1, Word: "再確定"})
+	_, err := uc.Confirm(ctx, usecase.ConfirmInput{ID: 1, Word: "再確定", GuestName: strPtr("ゲスト")})
 	if !errors.Is(err, domainCard.ErrAlreadyConfirmed) {
 		t.Errorf("wantErr=%v, got err=%v", domainCard.ErrAlreadyConfirmed, err)
 	}
@@ -176,15 +252,31 @@ func TestDelete_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, _ := newCardUsecase(ctrl)
+	uc, cardRepository, _, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	existing := &domainCard.Card{ID: 1, Number: 42, Word: "アリ", GuestName: strPtr("ゲスト")}
 	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(existing, nil)
 	cardRepository.EXPECT().Delete(ctx, int64(1)).Return(nil)
 
-	if err := uc.Delete(ctx, 1); err != nil {
+	if err := uc.Delete(ctx, usecase.DeleteInput{ID: 1, GuestName: strPtr("ゲスト")}); err != nil {
 		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestDelete_Forbidden(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	uc, cardRepository, _, _ := newCardUsecase(ctrl)
+	ctx := context.Background()
+
+	existing := &domainCard.Card{ID: 1, Number: 42, Word: "アリ", GuestName: strPtr("ゲスト")}
+	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(existing, nil)
+
+	err := uc.Delete(ctx, usecase.DeleteInput{ID: 1, GuestName: strPtr("別のゲスト")})
+	if !errors.Is(err, domainCard.ErrForbidden) {
+		t.Errorf("wantErr=%v, got err=%v", domainCard.ErrForbidden, err)
 	}
 }
 
@@ -192,12 +284,12 @@ func TestDelete_CardNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, _ := newCardUsecase(ctrl)
+	uc, cardRepository, _, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(nil, errors.New("not_found"))
 
-	if err := uc.Delete(ctx, 1); err == nil {
+	if err := uc.Delete(ctx, usecase.DeleteInput{ID: 1}); err == nil {
 		t.Error("カードが存在しない場合はエラーを返すべき")
 	}
 }
@@ -206,13 +298,13 @@ func TestDelete_AlreadyConfirmed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, _ := newCardUsecase(ctrl)
+	uc, cardRepository, _, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
-	existing := &domainCard.Card{ID: 1, Number: 42, Word: "確定済み", IsConfirmed: true}
+	existing := &domainCard.Card{ID: 1, Number: 42, Word: "確定済み", GuestName: strPtr("ゲスト"), IsConfirmed: true}
 	cardRepository.EXPECT().FetchByID(ctx, int64(1)).Return(existing, nil)
 
-	err := uc.Delete(ctx, 1)
+	err := uc.Delete(ctx, usecase.DeleteInput{ID: 1, GuestName: strPtr("ゲスト")})
 	if !errors.Is(err, domainCard.ErrAlreadyConfirmed) {
 		t.Errorf("wantErr=%v, got err=%v", domainCard.ErrAlreadyConfirmed, err)
 	}
@@ -224,7 +316,7 @@ func TestAvailable_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, themeRepository := newCardUsecase(ctrl)
+	uc, cardRepository, themeRepository, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	themeRepository.EXPECT().FetchByID(ctx, int64(1)).Return(&domainTheme.Theme{Title: "大きさ"}, nil)
@@ -243,7 +335,7 @@ func TestAvailable_ThemeNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, _, themeRepository := newCardUsecase(ctrl)
+	uc, _, themeRepository, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	themeRepository.EXPECT().FetchByID(ctx, int64(1)).Return(nil, domainTheme.ErrNotFound)
@@ -260,7 +352,7 @@ func TestGameCards_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, cardRepository, themeRepository := newCardUsecase(ctrl)
+	uc, cardRepository, themeRepository, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	themeRepository.EXPECT().FetchByID(ctx, int64(1)).Return(&domainTheme.Theme{Title: "大きさ"}, nil)
@@ -283,7 +375,7 @@ func TestGameCards_InvalidAmount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	uc, _, _ := newCardUsecase(ctrl)
+	uc, _, _, _ := newCardUsecase(ctrl)
 	ctx := context.Background()
 
 	_, err := uc.GameCards(ctx, usecase.GameCardsInput{ThemeID: 1, CardAmount: 3})
