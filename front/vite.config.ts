@@ -4,7 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  fmt: {},
+  fmt: {
+    sortTailwindcss: {
+      functions: ["clsx", "cn", "cva", "tv"],
+    },
+  },
   lint: {
     plugins: ["oxc", "typescript", "unicorn", "react"],
     categories: {
@@ -117,6 +121,11 @@ export default defineConfig({
       typeAware: true,
       typeCheck: true,
     },
+  },
+  test: {
+    globals: true,
+    environment: "node",
+    include: ["src/**/*.test.{ts,tsx}"],
   },
   plugins: [react(), tailwindcss()],
 });
