@@ -5,6 +5,7 @@ import "unicode/utf8"
 const MaxTitleLength = 100
 
 type Theme struct {
+	ID    int64
 	Title string
 }
 

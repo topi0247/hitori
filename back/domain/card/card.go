@@ -16,6 +16,9 @@ const (
 // TODO: CreatedAt, UpdatedAt を追加予定
 // NewInput は Card 生成時の入力値。Card とフィールドが異なるため分離している
 type Card struct {
+	ID          int64
+	UUID        string
+	ThemeID     int64
 	Number      int
 	Word        string
 	ProfileID   *int64
@@ -26,6 +29,7 @@ type Card struct {
 }
 
 type NewInput struct {
+	ThemeID   int64
 	Number    int
 	Word      string
 	ProfileID *int64
@@ -51,6 +55,7 @@ func New(input NewInput) (*Card, error) {
 
 	expiresAt := input.Now.Add(ProvisionalTTL)
 	return &Card{
+		ThemeID:     input.ThemeID,
 		Number:      input.Number,
 		Word:        input.Word,
 		ProfileID:   input.ProfileID,
