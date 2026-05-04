@@ -1,22 +1,35 @@
 package main
 
 import (
+	"context"
 	"log"
-	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
+
+	"github.com/topi0247/hitori/handler"
+	"github.com/topi0247/hitori/infra/postgres"
+	"github.com/topi0247/hitori/usecase"
 )
 
 func main() {
-	e := echo.New()
+	ctx := context.Background()
 
+	pool, err := postgres.NewPool(ctx, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatalf("failed to connect database: %v", err)
+	}
+	defer pool.Close()
+
+	repos := postgres.NewRepositories(pool)
+	usecases := usecase.NewUsecases(repos)
+	handlers := handler.NewHandlers(usecases)
+
+	e := echo.New()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
-
-	e.GET("/health", func(c *echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
-	})
+	handlers.SetRoutes(e)
 
 	if err := e.Start(":8080"); err != nil {
 		log.Fatal(err)
