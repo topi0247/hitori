@@ -7,7 +7,7 @@ import {
   PostCardResponse,
   PatchCardRequest,
   PatchCardResponse,
-} from "@/schemas/card";
+} from "@/types/schemas/card";
 
 describe("AvailableCardResponse", () => {
   it("有効なcard_numberを受け入れる", () => {

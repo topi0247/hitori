@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ProfileResponse, PatchProfileRequest } from "@/schemas/profile";
+import { ProfileResponse, PatchProfileRequest } from "@/types/schemas/profile";
 
 describe("ProfileResponse", () => {
   it("有効なuser_nameを受け入れる", () => {
