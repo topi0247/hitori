@@ -10,6 +10,13 @@ type Profile struct {
 	UserName   string
 }
 
+func New(authUserID, userName string) (*Profile, error) {
+	if utf8.RuneCountInString(userName) == 0 || utf8.RuneCountInString(userName) > MaxUserNameLength {
+		return nil, ErrInvalidUserName
+	}
+	return &Profile{AuthUserID: authUserID, UserName: userName}, nil
+}
+
 func (p *Profile) UpdateUserName(name string) error {
 	if utf8.RuneCountInString(name) == 0 || utf8.RuneCountInString(name) > MaxUserNameLength {
 		return ErrInvalidUserName
