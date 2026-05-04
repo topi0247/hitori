@@ -9,6 +9,7 @@ import (
 )
 
 type ProfileRepository interface {
+	Create(ctx context.Context, authUserID string, userName string) (*domainProfile.Profile, error)
 	FetchByAuthUserID(ctx context.Context, authUserID string) (*domainProfile.Profile, error)
 	UpdateUserName(ctx context.Context, authUserID string, userName string) error
 	Delete(ctx context.Context, authUserID string) error

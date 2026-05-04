@@ -17,6 +17,26 @@ func NewProfileHandler(usecase *usecase.ProfileUsecase) *ProfileHandler {
 	return &ProfileHandler{usecase: usecase}
 }
 
+type createProfileRequest struct {
+	UserName string `json:"user_name"`
+}
+
+func (h *ProfileHandler) Create(c *echo.Context) error {
+	var req createProfileRequest
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "bad_request")
+	}
+
+	out, err := h.usecase.Create(c.Request().Context(), usecase.CreateProfileInput{
+		AuthUserID: middleware.AuthUserID(c),
+		UserName:   req.UserName,
+	})
+	if err != nil {
+		return httpError(err)
+	}
+	return c.JSON(http.StatusCreated, map[string]any{"user_name": out.UserName})
+}
+
 func (h *ProfileHandler) Get(c *echo.Context) error {
 	out, err := h.usecase.Get(c.Request().Context(), middleware.AuthUserID(c))
 	if err != nil {

@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
+	domainProfile "github.com/topi0247/hitori/domain/profile"
 	"github.com/topi0247/hitori/usecase/repository"
 )
 
@@ -12,6 +14,38 @@ type ProfileUsecase struct {
 
 func NewProfileUsecase(repository repository.ProfileRepository) *ProfileUsecase {
 	return &ProfileUsecase{repository: repository}
+}
+
+// --- Create ---
+
+type CreateProfileInput struct {
+	AuthUserID string
+	UserName   string
+}
+
+type CreateProfileOutput struct {
+	UserName string
+}
+
+func (u *ProfileUsecase) Create(ctx context.Context, input CreateProfileInput) (*CreateProfileOutput, error) {
+	_, err := u.repository.FetchByAuthUserID(ctx, input.AuthUserID)
+	if err == nil {
+		return nil, domainProfile.ErrAlreadyExists
+	}
+	if !errors.Is(err, domainProfile.ErrNotFound) {
+		return nil, err
+	}
+
+	p, err := domainProfile.New(input.AuthUserID, input.UserName)
+	if err != nil {
+		return nil, err
+	}
+
+	created, err := u.repository.Create(ctx, p.AuthUserID, p.UserName)
+	if err != nil {
+		return nil, err
+	}
+	return &CreateProfileOutput{UserName: created.UserName}, nil
 }
 
 // --- Get ---

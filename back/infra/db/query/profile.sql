@@ -1,3 +1,7 @@
+-- name: InsertProfile :one
+INSERT INTO profiles (auth_user_id, user_name) VALUES ($1, $2)
+RETURNING id, auth_user_id, user_name;
+
 -- name: GetProfileByAuthUserID :one
 SELECT id, auth_user_id, user_name FROM profiles WHERE auth_user_id = $1;
 

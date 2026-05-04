@@ -18,6 +18,68 @@ func newProfileUsecase(ctrl *gomock.Controller) (*usecase.ProfileUsecase, *repos
 	return uc, profileRepository
 }
 
+func TestCreateProfile_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	uc, profileRepository := newProfileUsecase(ctrl)
+	ctx := context.Background()
+
+	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
+		Return(nil, domainProfile.ErrNotFound)
+	profileRepository.EXPECT().Create(ctx, "user-uuid", "たろう").
+		Return(&domainProfile.Profile{AuthUserID: "user-uuid", UserName: "たろう"}, nil)
+
+	out, err := uc.Create(ctx, usecase.CreateProfileInput{
+		AuthUserID: "user-uuid",
+		UserName:   "たろう",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if out.UserName != "たろう" {
+		t.Errorf("UserName=%s, want たろう", out.UserName)
+	}
+}
+
+func TestCreateProfile_AlreadyExists(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	uc, profileRepository := newProfileUsecase(ctrl)
+	ctx := context.Background()
+
+	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
+		Return(&domainProfile.Profile{UserName: "既存"}, nil)
+
+	_, err := uc.Create(ctx, usecase.CreateProfileInput{
+		AuthUserID: "user-uuid",
+		UserName:   "たろう",
+	})
+	if !errors.Is(err, domainProfile.ErrAlreadyExists) {
+		t.Errorf("wantErr=%v, got=%v", domainProfile.ErrAlreadyExists, err)
+	}
+}
+
+func TestCreateProfile_InvalidUserName(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	uc, profileRepository := newProfileUsecase(ctrl)
+	ctx := context.Background()
+
+	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
+		Return(nil, domainProfile.ErrNotFound)
+
+	_, err := uc.Create(ctx, usecase.CreateProfileInput{
+		AuthUserID: "user-uuid",
+		UserName:   "",
+	})
+	if !errors.Is(err, domainProfile.ErrInvalidUserName) {
+		t.Errorf("wantErr=%v, got=%v", domainProfile.ErrInvalidUserName, err)
+	}
+}
+
 func TestGetProfile_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

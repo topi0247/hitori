@@ -35,6 +35,29 @@ func (q *Queries) GetProfileByAuthUserID(ctx context.Context, authUserID string)
 	return i, err
 }
 
+const insertProfile = `-- name: InsertProfile :one
+INSERT INTO profiles (auth_user_id, user_name) VALUES ($1, $2)
+RETURNING id, auth_user_id, user_name
+`
+
+type InsertProfileParams struct {
+	AuthUserID string
+	UserName   string
+}
+
+type InsertProfileRow struct {
+	ID         int64
+	AuthUserID string
+	UserName   string
+}
+
+func (q *Queries) InsertProfile(ctx context.Context, arg InsertProfileParams) (InsertProfileRow, error) {
+	row := q.db.QueryRow(ctx, insertProfile, arg.AuthUserID, arg.UserName)
+	var i InsertProfileRow
+	err := row.Scan(&i.ID, &i.AuthUserID, &i.UserName)
+	return i, err
+}
+
 const updateProfileUserName = `-- name: UpdateProfileUserName :exec
 UPDATE profiles SET user_name = $1, updated_at = now() WHERE auth_user_id = $2
 `

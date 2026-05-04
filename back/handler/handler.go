@@ -42,6 +42,7 @@ func (h *Handlers) SetRoutes(e *echo.Echo, jwtSecret string) {
 
 	auth := e.Group("", middleware.JWT(jwtSecret))
 	auth.POST("/play_records", h.Game.Play)
+	auth.POST("/profile", h.Profile.Create)
 	auth.GET("/profile", h.Profile.Get)
 	auth.PATCH("/profile", h.Profile.Update)
 	auth.DELETE("/profile", h.Profile.Delete)

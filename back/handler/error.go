@@ -32,7 +32,8 @@ func httpError(err error) *echo.HTTPError {
 		return echo.NewHTTPError(http.StatusForbidden, err.Error())
 
 	case errors.Is(err, domainCard.ErrAlreadyConfirmed),
-		errors.Is(err, domainCard.ErrThemeCardLimitReached):
+		errors.Is(err, domainCard.ErrThemeCardLimitReached),
+		errors.Is(err, domainProfile.ErrAlreadyExists):
 		return echo.NewHTTPError(http.StatusConflict, err.Error())
 
 	default:

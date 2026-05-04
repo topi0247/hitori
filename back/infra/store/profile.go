@@ -18,6 +18,21 @@ func NewProfileRepository(q *sqlcgen.Queries) *ProfileRepository {
 	return &ProfileRepository{q: q}
 }
 
+func (r *ProfileRepository) Create(ctx context.Context, authUserID string, userName string) (*domainProfile.Profile, error) {
+	row, err := r.q.InsertProfile(ctx, sqlcgen.InsertProfileParams{
+		AuthUserID: authUserID,
+		UserName:   userName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &domainProfile.Profile{
+		ID:         row.ID,
+		AuthUserID: row.AuthUserID,
+		UserName:   row.UserName,
+	}, nil
+}
+
 func (r *ProfileRepository) FetchByAuthUserID(ctx context.Context, authUserID string) (*domainProfile.Profile, error) {
 	row, err := r.q.GetProfileByAuthUserID(ctx, authUserID)
 	if errors.Is(err, pgx.ErrNoRows) {

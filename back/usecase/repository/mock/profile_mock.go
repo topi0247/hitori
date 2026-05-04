@@ -41,6 +41,21 @@ func (m *MockProfileRepository) EXPECT() *MockProfileRepositoryMockRecorder {
 	return m.recorder
 }
 
+// Create mocks base method.
+func (m *MockProfileRepository) Create(ctx context.Context, authUserID string, userName string) (*profile.Profile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, authUserID, userName)
+	ret0, _ := ret[0].(*profile.Profile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockProfileRepositoryMockRecorder) Create(ctx, authUserID, userName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProfileRepository)(nil).Create), ctx, authUserID, userName)
+}
+
 // Delete mocks base method.
 func (m *MockProfileRepository) Delete(ctx context.Context, authUserID string) error {
 	m.ctrl.T.Helper()
