@@ -32,7 +32,7 @@ type Card struct {
 type PlayRecord struct {
 	ID          int64
 	ThemeID     int64
-	ProfileID   int64
+	ProfileID   pgtype.Int8
 	CardAmount  int16
 	CorrectRate float64
 	CreatedAt   time.Time

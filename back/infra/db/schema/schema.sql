@@ -17,7 +17,7 @@ CREATE TABLE cards (
   id            BIGSERIAL     PRIMARY KEY,
   uuid          UUID          NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   theme_id      BIGINT        NOT NULL REFERENCES themes(id),
-  profile_id    BIGINT        REFERENCES profiles(id),
+  profile_id    BIGINT        REFERENCES profiles(id) ON DELETE SET NULL,
   guest_name    VARCHAR(10),
   card_number   SMALLINT      NOT NULL CHECK (card_number >= 1 AND card_number <= 100),
   word          VARCHAR(25)   NOT NULL,
@@ -27,14 +27,13 @@ CREATE TABLE cards (
   created_at    TIMESTAMPTZ   NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ   NOT NULL DEFAULT now(),
   UNIQUE (theme_id, card_number),
-  UNIQUE (theme_id, guest_name),
-  CHECK (profile_id IS NOT NULL OR guest_name IS NOT NULL)
+  UNIQUE (theme_id, guest_name)
 );
 
 CREATE TABLE play_records (
   id            BIGSERIAL     PRIMARY KEY,
   theme_id      BIGINT        NOT NULL REFERENCES themes(id),
-  profile_id    BIGINT        NOT NULL REFERENCES profiles(id),
+  profile_id    BIGINT        REFERENCES profiles(id) ON DELETE SET NULL,
   card_amount   SMALLINT      NOT NULL CHECK (card_amount >= 4 AND card_amount <= 10),
   correct_rate  NUMERIC(5,2)  NOT NULL CHECK (correct_rate >= 0 AND correct_rate <= 100),
   created_at    TIMESTAMPTZ   NOT NULL DEFAULT now()
