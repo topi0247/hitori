@@ -13,7 +13,29 @@
 
 エラーハンドリングは `@praha/byethrow` を使ったResult型で実装。
 
+## ヘルスチェック
+
+### GET /health
+- 認証：不要
+- レスポンス 200
+```json
+{ "status": "ok" }
+```
+
 ## プロフィール
+
+### POST /profile
+- 認証：必須
+- リクエスト
+```json
+{ "user_name": "たろう" }
+```
+- バリデーション：`user_name` 必須・10文字以内
+- レスポンス 201
+```json
+{ "user_name": "たろう" }
+```
+- エラー：400 `ValidationError` / 401 `UnauthorizedError` / 409 `ConflictError`（既に作成済み）
 
 ### GET /profile
 - 認証：必須
@@ -21,7 +43,7 @@
 ```json
 { "user_name": "たろう" }
 ```
-- エラー：401 `UnauthorizedError`
+- エラー：401 `UnauthorizedError` / 404 `NotFoundError`
 
 ### PATCH /profile
 - 認証：必須
@@ -34,12 +56,12 @@
 ```json
 { "user_name": "じろう" }
 ```
-- エラー：400 `ValidationError` / 401 `UnauthorizedError`
+- エラー：400 `ValidationError` / 401 `UnauthorizedError` / 404 `NotFoundError`
 
 ### DELETE /profile
 - 認証：必須
-- レスポンス 200（bodyなし）
-- エラー：401 `UnauthorizedError`
+- レスポンス 204
+- エラー：401 `UnauthorizedError` / 404 `NotFoundError`
 
 ## テーマ
 
@@ -81,7 +103,7 @@
 
 ### POST /themes/:id/cards
 仮登録。
-- 認証：不要
+- 認証：不要（ログイン済みの場合はJWTを付与するとprofile_idが紐づく）
 - リクエスト
 ```json
 {
@@ -103,20 +125,26 @@
 - 認証：不要（所有者確認：ゲストは `guest_name` をリクエストに含める）
 - リクエスト
 ```json
-{ "word": "クジラ" }
+{ "word": "クジラ", "guest_name": "ゲスト太郎" }
 ```
+  - `guest_name`：ゲスト時のみ必須
 - バリデーション：`word` 必須・25文字以内
 - レスポンス 200
 ```json
 { "id": 1, "card_number": 42, "word": "クジラ" }
 ```
-- エラー：400 `ValidationError` / 403 `ForbiddenError` / 404 `NotFoundError`
+- エラー：400 `ValidationError` / 403 `ForbiddenError` / 404 `NotFoundError` / 409 `ConflictError`（確定済み）
 
 ### DELETE /cards/:id
 仮登録カードの削除。
-- 認証：不要（所有者確認）
-- レスポンス 200（bodyなし）
-- エラー：403 `ForbiddenError` / 404 `NotFoundError`
+- 認証：不要（所有者確認：ゲストは `guest_name` をリクエストに含める）
+- リクエスト
+```json
+{ "guest_name": "ゲスト太郎" }
+```
+  - `guest_name`：ゲスト時のみ必須
+- レスポンス 204
+- エラー：403 `ForbiddenError` / 404 `NotFoundError` / 409 `ConflictError`（確定済みは削除不可）
 
 ### POST /play_records
 プレイ結果記録 ＋ `correct_rate` ・ `match_points` 計算。
@@ -125,7 +153,7 @@
 ```json
 {
   "theme_id": 1,
-  "card_amount": 6,
+  "profile_id": 1,
   "answers": [
     { "uuid": "uuid-xxxx", "order": 1 },
     { "uuid": "uuid-yyyy", "order": 2 }
