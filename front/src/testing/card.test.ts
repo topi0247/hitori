@@ -7,7 +7,7 @@ import {
   PostCardResponse,
   PatchCardRequest,
   PatchCardResponse,
-} from "../types/card";
+} from "@/schemas/card";
 
 describe("AvailableCardResponse", () => {
   it("有効なcard_numberを受け入れる", () => {
@@ -137,6 +137,15 @@ describe("PostCardRequest", () => {
       card_number: 42,
       word: "アリ",
       guest_name: "あ".repeat(11),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("guest_name が空文字は失敗する", () => {
+    const result = PostCardRequest.safeParse({
+      card_number: 42,
+      word: "アリ",
+      guest_name: "",
     });
     expect(result.success).toBe(false);
   });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Theme, ThemesResponse } from "../types/theme";
+import { Theme, ThemesResponse } from "@/schemas/theme";
 
 describe("Theme", () => {
   it("有効なthemeを受け入れる", () => {

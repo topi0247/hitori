@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PostPlayRecordRequest, PostPlayRecordResponse } from "../types/playRecord";
+import { PostPlayRecordRequest, PostPlayRecordResponse } from "@/schemas/playRecord";
 
 describe("PostPlayRecordRequest", () => {
   const validAnswers = [

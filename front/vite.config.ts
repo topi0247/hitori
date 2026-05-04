@@ -1,6 +1,7 @@
 import { defineConfig } from "vite-plus";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -126,6 +127,11 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
+  },
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
   },
   plugins: [react(), tailwindcss()],
 });
