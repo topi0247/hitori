@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 
+	"github.com/topi0247/hitori/handler/middleware"
 	"github.com/topi0247/hitori/usecase"
 )
 
@@ -17,7 +18,7 @@ func NewProfileHandler(usecase *usecase.ProfileUsecase) *ProfileHandler {
 }
 
 func (h *ProfileHandler) Get(c *echo.Context) error {
-	out, err := h.usecase.Get(c.Request().Context(), authUserID(c))
+	out, err := h.usecase.Get(c.Request().Context(), middleware.AuthUserID(c))
 	if err != nil {
 		return httpError(err)
 	}
@@ -35,7 +36,7 @@ func (h *ProfileHandler) Update(c *echo.Context) error {
 	}
 
 	out, err := h.usecase.Update(c.Request().Context(), usecase.UpdateProfileInput{
-		AuthUserID: authUserID(c),
+		AuthUserID: middleware.AuthUserID(c),
 		UserName:   req.UserName,
 	})
 	if err != nil {
@@ -45,7 +46,7 @@ func (h *ProfileHandler) Update(c *echo.Context) error {
 }
 
 func (h *ProfileHandler) Delete(c *echo.Context) error {
-	if err := h.usecase.Delete(c.Request().Context(), authUserID(c)); err != nil {
+	if err := h.usecase.Delete(c.Request().Context(), middleware.AuthUserID(c)); err != nil {
 		return httpError(err)
 	}
 	return c.NoContent(http.StatusNoContent)

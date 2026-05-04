@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 
+	"github.com/topi0247/hitori/handler/middleware"
 	"github.com/topi0247/hitori/usecase"
 )
 
@@ -33,12 +34,13 @@ func (h *Handlers) SetRoutes(e *echo.Echo, jwtSecret string) {
 
 	e.GET("/themes/:id/cards/available", h.Card.Available)
 	e.GET("/themes/:id/cards/game", h.Card.GameCards)
-	e.POST("/themes/:id/cards", h.Card.Create)
 
-	e.PATCH("/cards/:id", h.Card.Confirm)
-	e.DELETE("/cards/:id", h.Card.Delete)
+	optAuth := e.Group("", middleware.OptionalJWT(jwtSecret))
+	optAuth.POST("/themes/:id/cards", h.Card.Create)
+	optAuth.PATCH("/cards/:id", h.Card.Confirm)
+	optAuth.DELETE("/cards/:id", h.Card.Delete)
 
-	auth := e.Group("", JWTMiddleware(jwtSecret))
+	auth := e.Group("", middleware.JWT(jwtSecret))
 	auth.POST("/play_records", h.Game.Play)
 	auth.GET("/profile", h.Profile.Get)
 	auth.PATCH("/profile", h.Profile.Update)

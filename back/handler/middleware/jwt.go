@@ -1,4 +1,4 @@
-package handler
+package middleware
 
 import (
 	"net/http"
@@ -10,7 +10,7 @@ import (
 
 const authUserIDKey = "auth_user_id"
 
-func JWTMiddleware(jwtSecret string) echo.MiddlewareFunc {
+func JWT(jwtSecret string) echo.MiddlewareFunc {
 	secret := []byte(jwtSecret)
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
@@ -46,7 +46,33 @@ func JWTMiddleware(jwtSecret string) echo.MiddlewareFunc {
 	}
 }
 
-func authUserID(c *echo.Context) string {
+func OptionalJWT(jwtSecret string) echo.MiddlewareFunc {
+	secret := []byte(jwtSecret)
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			authHeader := c.Request().Header.Get("Authorization")
+			if strings.HasPrefix(authHeader, "Bearer ") {
+				tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+				token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
+					if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+						return nil, jwt.ErrSignatureInvalid
+					}
+					return secret, nil
+				})
+				if err == nil && token.Valid {
+					if claims, ok := token.Claims.(jwt.MapClaims); ok {
+						if sub, ok := claims["sub"].(string); ok && sub != "" {
+							c.Set(authUserIDKey, sub)
+						}
+					}
+				}
+			}
+			return next(c)
+		}
+	}
+}
+
+func AuthUserID(c *echo.Context) string {
 	v, _ := c.Get(authUserIDKey).(string)
 	return v
 }
