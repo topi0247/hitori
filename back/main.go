@@ -29,7 +29,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
-	handlers.SetRoutes(e)
+	handlers.SetRoutes(e, os.Getenv("JWT_SECRET"))
 
 	if err := e.Start(":8080"); err != nil {
 		log.Fatal(err)

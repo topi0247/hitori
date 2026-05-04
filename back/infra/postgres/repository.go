@@ -11,5 +11,6 @@ func NewRepositories(pool *pgxpool.Pool) *repository.Repositories {
 		Card:       NewCardRepository(pool),
 		Theme:      NewThemeRepository(pool),
 		PlayRecord: NewPlayRecordRepository(pool),
+		Profile:    NewProfileRepository(pool),
 	}
 }
