@@ -1,0 +1,17 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "infra/db/query"
+    schema: "infra/db/schema"
+    gen:
+      go:
+        package: "sqlcgen"
+        out: "infra/db/sqlcgen"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: "uuid"
+            go_type: "string"
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - db_type: "pg_catalog.numeric"
+            go_type: "float64"
