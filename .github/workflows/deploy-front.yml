@@ -1,0 +1,67 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "front/**"
+
+env:
+  AWS_REGION: ap-northeast-1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: front/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: front
+
+      - name: Build
+        run: pnpm build
+        working-directory: front
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/hitori-github-actions
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload to S3
+        run: |
+          aws s3 sync front/dist s3://hitori-frontend-${{ secrets.AWS_ACCOUNT_ID }} \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable"
+
+      - name: Fix cache-control for index.html
+        run: |
+          aws s3 cp \
+            s3://hitori-frontend-${{ secrets.AWS_ACCOUNT_ID }}/index.html \
+            s3://hitori-frontend-${{ secrets.AWS_ACCOUNT_ID }}/index.html \
+            --metadata-directive REPLACE \
+            --cache-control "no-cache"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
