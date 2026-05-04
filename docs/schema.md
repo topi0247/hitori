@@ -1,5 +1,26 @@
 # テーブル設計
 
+## スキーマ変更手順
+
+スキーマ定義は以下の2箇所を**必ず両方**更新する。
+
+| ファイル | 用途 |
+|---|---|
+| `supabase/migrations/` | 実際のDB変更（Supabase が適用） |
+| `back/db/schema/schema.sql` | sqlc の型推論用（コピー） |
+
+```
+1. supabase/migrations/ に新しい .sql ファイルを作成
+2. back/db/schema/schema.sql を同じ内容に更新
+3. back/db/query/ に必要なクエリを追加・変更
+4. make generate/sqlc を実行（Go コード再生成）
+```
+
+> `back/db/schema/schema.sql` は `supabase/migrations/` の写し。  
+> 将来的には sqlc の schema を直接 `supabase/migrations/` に向けることで一本化できる。
+
+---
+
 ## profiles
 
 ```sql
