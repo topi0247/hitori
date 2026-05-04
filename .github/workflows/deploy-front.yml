@@ -58,6 +58,7 @@ jobs:
             s3://hitori-frontend-${{ secrets.AWS_ACCOUNT_ID }}/index.html \
             s3://hitori-frontend-${{ secrets.AWS_ACCOUNT_ID }}/index.html \
             --metadata-directive REPLACE \
+            --content-type "text/html" \
             --cache-control "no-cache"
 
       - name: Invalidate CloudFront cache
