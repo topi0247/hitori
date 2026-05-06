@@ -12,7 +12,7 @@ generate/sqlc:
 up: dev/supabase
 	@trap 'kill 0' SIGINT; \
 	(cd front && vp dev) & \
-	(cd back && DATABASE_URL=$(DATABASE_URL) ALLOWED_ORIGIN=$(ALLOWED_ORIGIN) go run main.go) & \
+	(cd back && env $$(grep -v '^\#' .env | xargs) go run main.go) & \
 	wait
 
 dev/supabase:
@@ -22,7 +22,7 @@ dev/front:
 	cd front && vp dev
 
 dev/back:
-	cd back && DATABASE_URL=$(DATABASE_URL) ALLOWED_ORIGIN=$(ALLOWED_ORIGIN) go run main.go
+	cd back && env $$(grep -v '^\#' .env | xargs) go run main.go
 
 down:
 	supabase stop
