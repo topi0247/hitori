@@ -1,4 +1,12 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  redirect,
+} from "@tanstack/react-router";
+import { getDefaultStore } from "jotai";
+import { sessionAtom } from "@/stores/auth";
 import { RootPage } from "@/pages/root";
 import { AuthPage } from "@/pages/auth";
 import { AccountPage } from "@/pages/account";
@@ -16,12 +24,20 @@ const indexRoute = createRoute({
 const authRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/auth",
+  beforeLoad: () => {
+    const session = getDefaultStore().get(sessionAtom);
+    if (session) throw redirect({ to: "/" });
+  },
   component: AuthPage,
 });
 
 const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/account",
+  beforeLoad: () => {
+    const session = getDefaultStore().get(sessionAtom);
+    if (!session) throw redirect({ to: "/auth" });
+  },
   component: AccountPage,
 });
 
