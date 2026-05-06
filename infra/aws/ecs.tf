@@ -34,6 +34,10 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "ALLOWED_ORIGIN"
           value = "https://${var.domain}"
+        },
+        {
+          name  = "SUPABASE_JWKS_URL"
+          value = var.supabase_jwks_url
         }
       ]
       secrets = [

@@ -23,6 +23,10 @@ variable "jwt_secret" {
   sensitive = true
 }
 
+variable "supabase_jwks_url" {
+  type = string
+}
+
 variable "task_cpu" {
   type    = string
   default = "256"
