@@ -21,9 +21,13 @@
     "url": "https://github.com/topi0247/hitori/issues"
   },
   "homepage": "https://github.com/topi0247/hitori#readme",
+  "lint-staged": {
+    "front/src/**/*.{ts,tsx,js,jsx,mjs,json,css}": "bash -c 'cd front && pnpm exec vp check $@' _"
+  },
   "devDependencies": {
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
   }
 }
