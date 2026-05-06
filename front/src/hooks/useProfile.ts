@@ -1,10 +1,22 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import type {
+  CreateProfileRequest,
+  CreateProfileResponse,
   PatchProfileRequest,
   PatchProfileResponse,
   ProfileResponse,
 } from "@/types/schemas/profile";
+
+const useCreateProfile = () =>
+  useMutation({
+    mutationFn: ({ token, ...data }: CreateProfileRequest & { token: string }) =>
+      apiFetch<CreateProfileResponse>("/profile", {
+        method: "POST",
+        body: JSON.stringify(data),
+        token,
+      }),
+  });
 
 const useProfile = (token: string) =>
   useQuery({
@@ -27,4 +39,4 @@ const useDeleteProfile = (token: string) =>
     mutationFn: () => apiFetch<void>("/profile", { method: "DELETE", token }),
   });
 
-export { useProfile, usePatchProfile, useDeleteProfile };
+export { useCreateProfile, useProfile, usePatchProfile, useDeleteProfile };

@@ -1,7 +1,12 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiFetch } from "@/lib/api";
-import { useDeleteProfile, usePatchProfile, useProfile } from "@/hooks/useProfile";
+import {
+  useCreateProfile,
+  useDeleteProfile,
+  usePatchProfile,
+  useProfile,
+} from "@/hooks/useProfile";
 import { createWrapper } from "@/testing/wrapper";
 
 vi.mock("@/lib/api");
@@ -39,6 +44,25 @@ describe("usePatchProfile", () => {
     mockApiFetch.mockRejectedValue(new Error("ValidationError"));
     const { result } = renderHook(() => usePatchProfile("token"), { wrapper: createWrapper() });
     result.current.mutate({ user_name: "じろう" });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+});
+
+describe("useCreateProfile", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("プロフィールを作成できる", async () => {
+    mockApiFetch.mockResolvedValue({ user_name: "たろう" });
+    const { result } = renderHook(() => useCreateProfile(), { wrapper: createWrapper() });
+    result.current.mutate({ token: "token", user_name: "たろう" });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual({ user_name: "たろう" });
+  });
+
+  it("作成エラー時は isError が true になる", async () => {
+    mockApiFetch.mockRejectedValue(new Error("ConflictError"));
+    const { result } = renderHook(() => useCreateProfile(), { wrapper: createWrapper() });
+    result.current.mutate({ token: "token", user_name: "たろう" });
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
 });
