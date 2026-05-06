@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"crypto/ecdsa"
 	"net/http"
 	"strings"
 
@@ -10,8 +11,26 @@ import (
 
 const authUserIDKey = "auth_user_id"
 
-func JWT(jwtSecret string) echo.MiddlewareFunc {
-	secret := []byte(jwtSecret)
+type JWTConfig struct {
+	HMACSecret  []byte
+	ECPublicKey *ecdsa.PublicKey
+}
+
+func (cfg *JWTConfig) keyfunc(t *jwt.Token) (any, error) {
+	switch t.Method.(type) {
+	case *jwt.SigningMethodHMAC:
+		return cfg.HMACSecret, nil
+	case *jwt.SigningMethodECDSA:
+		if cfg.ECPublicKey == nil {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return cfg.ECPublicKey, nil
+	default:
+		return nil, jwt.ErrSignatureInvalid
+	}
+}
+
+func JWT(cfg JWTConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
@@ -20,12 +39,7 @@ func JWT(jwtSecret string) echo.MiddlewareFunc {
 			}
 			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
-			token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
-				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, jwt.ErrSignatureInvalid
-				}
-				return secret, nil
-			})
+			token, err := jwt.Parse(tokenStr, cfg.keyfunc)
 			if err != nil || !token.Valid {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 			}
@@ -46,19 +60,13 @@ func JWT(jwtSecret string) echo.MiddlewareFunc {
 	}
 }
 
-func OptionalJWT(jwtSecret string) echo.MiddlewareFunc {
-	secret := []byte(jwtSecret)
+func OptionalJWT(cfg JWTConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
 			if strings.HasPrefix(authHeader, "Bearer ") {
 				tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-				token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
-					if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-						return nil, jwt.ErrSignatureInvalid
-					}
-					return secret, nil
-				})
+				token, err := jwt.Parse(tokenStr, cfg.keyfunc)
 				if err == nil && token.Valid {
 					if claims, ok := token.Claims.(jwt.MapClaims); ok {
 						if sub, ok := claims["sub"].(string); ok && sub != "" {

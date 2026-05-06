@@ -25,7 +25,7 @@ func NewHandlers(usecases *usecase.Usecases) *Handlers {
 	}
 }
 
-func (h *Handlers) SetRoutes(e *echo.Echo, jwtSecret string) {
+func (h *Handlers) SetRoutes(e *echo.Echo, jwtCfg middleware.JWTConfig) {
 	e.GET("/health", func(c *echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
@@ -35,12 +35,12 @@ func (h *Handlers) SetRoutes(e *echo.Echo, jwtSecret string) {
 	e.GET("/themes/:id/cards/available", h.Card.Available)
 	e.GET("/themes/:id/cards/game", h.Card.GameCards)
 
-	optAuth := e.Group("", middleware.OptionalJWT(jwtSecret))
+	optAuth := e.Group("", middleware.OptionalJWT(jwtCfg))
 	optAuth.POST("/themes/:id/cards", h.Card.Create)
 	optAuth.PATCH("/cards/:id", h.Card.Confirm)
 	optAuth.DELETE("/cards/:id", h.Card.Delete)
 
-	auth := e.Group("", middleware.JWT(jwtSecret))
+	auth := e.Group("", middleware.JWT(jwtCfg))
 	auth.POST("/play_records", h.Game.Play)
 	auth.POST("/profile", h.Profile.Create)
 	auth.GET("/profile", h.Profile.Get)

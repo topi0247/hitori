@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v5/middleware"
 
 	"github.com/topi0247/hitori/handler"
+	jwtmw "github.com/topi0247/hitori/handler/middleware"
 	"github.com/topi0247/hitori/infra/store"
 	"github.com/topi0247/hitori/usecase"
 )
@@ -22,6 +23,8 @@ func main() {
 	}
 	defer pool.Close()
 
+	jwtCfg := jwtmw.NewJWTConfig([]byte(os.Getenv("JWT_SECRET")), os.Getenv("SUPABASE_JWKS_URL"))
+
 	repos := store.NewRepositories(pool)
 	usecases := usecase.NewUsecases(repos)
 	handlers := handler.NewHandlers(usecases)
@@ -34,7 +37,7 @@ func main() {
 		AllowMethods: []string{"GET", "POST", "PATCH", "DELETE"},
 		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
-	handlers.SetRoutes(e, os.Getenv("JWT_SECRET"))
+	handlers.SetRoutes(e, jwtCfg)
 
 	if err := e.Start(":8080"); err != nil {
 		log.Fatal(err)
