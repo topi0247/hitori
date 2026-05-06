@@ -98,4 +98,3 @@ func (u *ProfileUsecase) Delete(ctx context.Context, authUserID string) error {
 	}
 	return u.repository.Delete(ctx, authUserID)
 }
-

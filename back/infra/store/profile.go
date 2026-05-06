@@ -6,8 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/topi0247/hitori/infra/db/sqlcgen"
 	domainProfile "github.com/topi0247/hitori/domain/profile"
+	"github.com/topi0247/hitori/infra/db/sqlcgen"
 )
 
 type ProfileRepository struct {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/topi0247/hitori/infra/db/sqlcgen"
 	domainTheme "github.com/topi0247/hitori/domain/theme"
+	"github.com/topi0247/hitori/infra/db/sqlcgen"
 )
 
 type ThemeRepository struct {
