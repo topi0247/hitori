@@ -9,6 +9,13 @@ import (
 
 const MaxUserNameLength = 10
 
+type ProfileRepository interface {
+	Create(ctx context.Context, authUserID string, userName string) (*Profile, error)
+	FetchByAuthUserID(ctx context.Context, authUserID string) (*Profile, error)
+	UpdateUserName(ctx context.Context, authUserID string, userName string) error
+	Delete(ctx context.Context, authUserID string) error
+}
+
 type Profile struct {
 	ID         int64
 	AuthUserID string
@@ -28,11 +35,4 @@ func (p *Profile) UpdateUserName(name string) error {
 	}
 	p.UserName = name
 	return nil
-}
-
-type ProfileRepository interface {
-	Create(ctx context.Context, authUserID string, userName string) (*Profile, error)
-	FetchByAuthUserID(ctx context.Context, authUserID string) (*Profile, error)
-	UpdateUserName(ctx context.Context, authUserID string, userName string) error
-	Delete(ctx context.Context, authUserID string) error
 }

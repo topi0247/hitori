@@ -9,6 +9,11 @@ import (
 
 const MaxTitleLength = 100
 
+type ThemeRepository interface {
+	FetchAll(ctx context.Context) ([]*Theme, error)
+	FetchByID(ctx context.Context, id int64) (*Theme, error)
+}
+
 type Theme struct {
 	ID    int64
 	Title string
@@ -19,9 +24,4 @@ func NewTheme(title string) (*Theme, error) {
 		return nil, ErrInvalidTitle
 	}
 	return &Theme{Title: title}, nil
-}
-
-type ThemeRepository interface {
-	FetchAll(ctx context.Context) ([]*Theme, error)
-	FetchByID(ctx context.Context, id int64) (*Theme, error)
 }
