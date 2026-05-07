@@ -8,14 +8,14 @@ import (
 
 	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase"
-	repositorymock "github.com/topi0247/hitori/usecase/repository/mock"
+	domainmock "github.com/topi0247/hitori/domain/mock"
 )
 
 func TestList_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	themeRepository := repositorymock.NewMockThemeRepository(ctrl)
+	themeRepository := domainmock.NewMockThemeRepository(ctrl)
 	ctx := context.Background()
 
 	themeRepository.EXPECT().FetchAll(ctx).Return([]*domain.Theme{

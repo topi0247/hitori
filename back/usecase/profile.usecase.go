@@ -5,14 +5,13 @@ import (
 	"errors"
 
 	"github.com/topi0247/hitori/domain"
-	"github.com/topi0247/hitori/usecase/repository"
 )
 
 type ProfileUsecase struct {
-	repository repository.ProfileRepository
+	repository domain.ProfileRepository
 }
 
-func NewProfileUsecase(repository repository.ProfileRepository) *ProfileUsecase {
+func NewProfileUsecase(repository domain.ProfileRepository) *ProfileUsecase {
 	return &ProfileUsecase{repository: repository}
 }
 

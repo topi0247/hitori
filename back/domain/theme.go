@@ -1,6 +1,11 @@
 package domain
 
-import "unicode/utf8"
+//go:generate mockgen -source=theme.go -destination=mock/theme_mock.go -package=domainmock
+
+import (
+	"context"
+	"unicode/utf8"
+)
 
 const MaxTitleLength = 100
 
@@ -14,4 +19,9 @@ func NewTheme(title string) (*Theme, error) {
 		return nil, ErrInvalidTitle
 	}
 	return &Theme{Title: title}, nil
+}
+
+type ThemeRepository interface {
+	FetchAll(ctx context.Context) ([]*Theme, error)
+	FetchByID(ctx context.Context, id int64) (*Theme, error)
 }

@@ -9,11 +9,11 @@ import (
 
 	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase"
-	repositorymock "github.com/topi0247/hitori/usecase/repository/mock"
+	domainmock "github.com/topi0247/hitori/domain/mock"
 )
 
-func newProfileUsecase(ctrl *gomock.Controller) (*usecase.ProfileUsecase, *repositorymock.MockProfileRepository) {
-	profileRepository := repositorymock.NewMockProfileRepository(ctrl)
+func newProfileUsecase(ctrl *gomock.Controller) (*usecase.ProfileUsecase, *domainmock.MockProfileRepository) {
+	profileRepository := domainmock.NewMockProfileRepository(ctrl)
 	uc := usecase.NewProfileUsecase(profileRepository)
 	return uc, profileRepository
 }

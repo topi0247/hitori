@@ -1,6 +1,11 @@
 package domain
 
-import "unicode/utf8"
+//go:generate mockgen -source=profile.go -destination=mock/profile_mock.go -package=domainmock
+
+import (
+	"context"
+	"unicode/utf8"
+)
 
 const MaxUserNameLength = 10
 
@@ -23,4 +28,11 @@ func (p *Profile) UpdateUserName(name string) error {
 	}
 	p.UserName = name
 	return nil
+}
+
+type ProfileRepository interface {
+	Create(ctx context.Context, authUserID string, userName string) (*Profile, error)
+	FetchByAuthUserID(ctx context.Context, authUserID string) (*Profile, error)
+	UpdateUserName(ctx context.Context, authUserID string, userName string) error
+	Delete(ctx context.Context, authUserID string) error
 }

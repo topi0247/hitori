@@ -8,16 +8,16 @@ import (
 
 	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase"
-	repositorymock "github.com/topi0247/hitori/usecase/repository/mock"
+	domainmock "github.com/topi0247/hitori/domain/mock"
 )
 
 func TestPlay_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	cardRepository := repositorymock.NewMockCardRepository(ctrl)
-	playRecordRepository := repositorymock.NewMockPlayRecordRepository(ctrl)
-	profileRepository := repositorymock.NewMockProfileRepository(ctrl)
+	cardRepository := domainmock.NewMockCardRepository(ctrl)
+	playRecordRepository := domainmock.NewMockPlayRecordRepository(ctrl)
+	profileRepository := domainmock.NewMockProfileRepository(ctrl)
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-123").Return(&domain.Profile{ID: 1, AuthUserID: "user-123", UserName: "テスト"}, nil)
@@ -55,9 +55,9 @@ func TestPlay_NoAnswers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	cardRepository := repositorymock.NewMockCardRepository(ctrl)
-	playRecordRepository := repositorymock.NewMockPlayRecordRepository(ctrl)
-	profileRepository := repositorymock.NewMockProfileRepository(ctrl)
+	cardRepository := domainmock.NewMockCardRepository(ctrl)
+	playRecordRepository := domainmock.NewMockPlayRecordRepository(ctrl)
+	profileRepository := domainmock.NewMockProfileRepository(ctrl)
 	ctx := context.Background()
 
 	uc := usecase.NewGameUsecase(cardRepository, playRecordRepository, profileRepository)

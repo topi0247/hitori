@@ -5,18 +5,17 @@ import (
 	"errors"
 
 	"github.com/topi0247/hitori/domain"
-	"github.com/topi0247/hitori/usecase/repository"
 )
 
 var ErrNoAnswers = errors.New("no_answers")
 
 type GameUsecase struct {
-	cardRepository       repository.CardRepository
-	playRecordRepository repository.PlayRecordRepository
-	profileRepository    repository.ProfileRepository
+	cardRepository       domain.CardRepository
+	playRecordRepository domain.PlayRecordRepository
+	profileRepository    domain.ProfileRepository
 }
 
-func NewGameUsecase(cardRepository repository.CardRepository, playRecordRepository repository.PlayRecordRepository, profileRepository repository.ProfileRepository) *GameUsecase {
+func NewGameUsecase(cardRepository domain.CardRepository, playRecordRepository domain.PlayRecordRepository, profileRepository domain.ProfileRepository) *GameUsecase {
 	return &GameUsecase{cardRepository: cardRepository, playRecordRepository: playRecordRepository, profileRepository: profileRepository}
 }
 
@@ -93,7 +92,7 @@ func (u *GameUsecase) Play(ctx context.Context, input PlayInput) (*PlayOutput, e
 		}
 	}
 
-	if err := u.playRecordRepository.Save(ctx, &repository.PlayRecord{
+	if err := u.playRecordRepository.Save(ctx, &domain.PlayRecord{
 		ThemeID:     input.ThemeID,
 		ProfileID:   profile.ID,
 		CardAmount:  len(cards),

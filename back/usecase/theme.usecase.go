@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/topi0247/hitori/domain"
-	"github.com/topi0247/hitori/usecase/repository"
 )
 
 type ThemeUsecase struct {
-	repository repository.ThemeRepository
+	repository domain.ThemeRepository
 }
 
-func NewThemeUsecase(repository repository.ThemeRepository) *ThemeUsecase {
+func NewThemeUsecase(repository domain.ThemeRepository) *ThemeUsecase {
 	return &ThemeUsecase{repository: repository}
 }
 

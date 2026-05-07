@@ -10,15 +10,15 @@ import (
 
 	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase"
-	repositorymock "github.com/topi0247/hitori/usecase/repository/mock"
+	domainmock "github.com/topi0247/hitori/domain/mock"
 )
 
 func strPtr(s string) *string { return &s }
 
-func newCardUsecase(ctrl *gomock.Controller) (*usecase.CardUsecase, *repositorymock.MockCardRepository, *repositorymock.MockThemeRepository, *repositorymock.MockProfileRepository) {
-	cardRepository := repositorymock.NewMockCardRepository(ctrl)
-	themeRepository := repositorymock.NewMockThemeRepository(ctrl)
-	profileRepository := repositorymock.NewMockProfileRepository(ctrl)
+func newCardUsecase(ctrl *gomock.Controller) (*usecase.CardUsecase, *domainmock.MockCardRepository, *domainmock.MockThemeRepository, *domainmock.MockProfileRepository) {
+	cardRepository := domainmock.NewMockCardRepository(ctrl)
+	themeRepository := domainmock.NewMockThemeRepository(ctrl)
+	profileRepository := domainmock.NewMockProfileRepository(ctrl)
 	uc := usecase.NewCardUsecase(cardRepository, themeRepository, profileRepository)
 	return uc, cardRepository, themeRepository, profileRepository
 }

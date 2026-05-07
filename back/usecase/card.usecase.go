@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/topi0247/hitori/domain"
-	"github.com/topi0247/hitori/usecase/repository"
 )
 
 const (
@@ -17,12 +16,12 @@ const (
 var ErrInvalidCardAmount = errors.New("invalid_card_amount")
 
 type CardUsecase struct {
-	cardRepository    repository.CardRepository
-	themeRepository   repository.ThemeRepository
-	profileRepository repository.ProfileRepository
+	cardRepository    domain.CardRepository
+	themeRepository   domain.ThemeRepository
+	profileRepository domain.ProfileRepository
 }
 
-func NewCardUsecase(cardRepository repository.CardRepository, themeRepository repository.ThemeRepository, profileRepository repository.ProfileRepository) *CardUsecase {
+func NewCardUsecase(cardRepository domain.CardRepository, themeRepository domain.ThemeRepository, profileRepository domain.ProfileRepository) *CardUsecase {
 	return &CardUsecase{
 		cardRepository:    cardRepository,
 		themeRepository:   themeRepository,

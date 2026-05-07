@@ -1,6 +1,9 @@
 package domain
 
+//go:generate mockgen -source=game.go -destination=mock/game_mock.go -package=domainmock
+
 import (
+	"context"
 	"errors"
 	"math"
 	"sort"
@@ -92,4 +95,15 @@ func Judge(cards []CardEntry, answers []GameAnswer) (*JudgeResult, error) {
 		CorrectRate: correctRate,
 		Cards:       results,
 	}, nil
+}
+
+type PlayRecord struct {
+	ThemeID     int64
+	ProfileID   int64
+	CardAmount  int
+	CorrectRate float64
+}
+
+type PlayRecordRepository interface {
+	Save(ctx context.Context, record *PlayRecord) error
 }
