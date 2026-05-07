@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/mock/gomock"
 
-	domainTheme "github.com/topi0247/hitori/domain/theme"
+	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase"
 	repositorymock "github.com/topi0247/hitori/usecase/repository/mock"
 )
@@ -18,7 +18,7 @@ func TestList_Success(t *testing.T) {
 	themeRepository := repositorymock.NewMockThemeRepository(ctrl)
 	ctx := context.Background()
 
-	themeRepository.EXPECT().FetchAll(ctx).Return([]*domainTheme.Theme{
+	themeRepository.EXPECT().FetchAll(ctx).Return([]*domain.Theme{
 		{Title: "大きさ"},
 		{Title: "速さ"},
 	}, nil)

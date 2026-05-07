@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	domainCard "github.com/topi0247/hitori/domain/card"
+	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/infra/db/sqlcgen"
 )
 
@@ -18,8 +18,8 @@ func NewCardRepository(q *sqlcgen.Queries) *CardRepository {
 	return &CardRepository{q: q}
 }
 
-func toCard(m sqlcgen.Card) *domainCard.Card {
-	return &domainCard.Card{
+func toCard(m sqlcgen.Card) *domain.Card {
+	return &domain.Card{
 		ID:          m.ID,
 		UUID:        m.Uuid,
 		ThemeID:     m.ThemeID,
@@ -33,7 +33,7 @@ func toCard(m sqlcgen.Card) *domainCard.Card {
 	}
 }
 
-func (r *CardRepository) Save(ctx context.Context, c *domainCard.Card) error {
+func (r *CardRepository) Save(ctx context.Context, c *domain.Card) error {
 	row, err := r.q.InsertCard(ctx, sqlcgen.InsertCardParams{
 		ThemeID:    c.ThemeID,
 		ProfileID:  toPgtypeInt8(c.ProfileID),
@@ -50,10 +50,10 @@ func (r *CardRepository) Save(ctx context.Context, c *domainCard.Card) error {
 	return nil
 }
 
-func (r *CardRepository) FetchByID(ctx context.Context, id int64) (*domainCard.Card, error) {
+func (r *CardRepository) FetchByID(ctx context.Context, id int64) (*domain.Card, error) {
 	m, err := r.q.GetCardByID(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, domainCard.ErrNotFound
+		return nil, domain.ErrNotFound
 	}
 	if err != nil {
 		return nil, err
@@ -68,17 +68,17 @@ func (r *CardRepository) CountByThemeID(ctx context.Context, themeID int64) (int
 
 func (r *CardRepository) GetAvailableNumber(ctx context.Context, themeID int64) (int, error) {
 	n, err := r.q.GetAvailableCardNumber(ctx, sqlcgen.GetAvailableCardNumberParams{
-		Column1: int32(domainCard.MinCardNumber),
-		Column2: int32(domainCard.MaxCardNumber),
+		Column1: int32(domain.MinCardNumber),
+		Column2: int32(domain.MaxCardNumber),
 		ThemeID: themeID,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return 0, domainCard.ErrThemeCardLimitReached
+		return 0, domain.ErrThemeCardLimitReached
 	}
 	return int(n), err
 }
 
-func (r *CardRepository) GetGameCards(ctx context.Context, themeID int64, amount int) ([]*domainCard.Card, error) {
+func (r *CardRepository) GetGameCards(ctx context.Context, themeID int64, amount int) ([]*domain.Card, error) {
 	rows, err := r.q.GetGameCards(ctx, sqlcgen.GetGameCardsParams{
 		ThemeID: themeID,
 		Column2: int32(amount),
@@ -86,7 +86,7 @@ func (r *CardRepository) GetGameCards(ctx context.Context, themeID int64, amount
 	if err != nil {
 		return nil, err
 	}
-	cards := make([]*domainCard.Card, len(rows))
+	cards := make([]*domain.Card, len(rows))
 	for i, m := range rows {
 		cards[i] = toCard(m)
 	}
@@ -101,12 +101,12 @@ func (r *CardRepository) Delete(ctx context.Context, id int64) error {
 	return r.q.DeleteCard(ctx, id)
 }
 
-func (r *CardRepository) FetchGameCardsByUUIDs(ctx context.Context, uuids []string) ([]*domainCard.Card, error) {
+func (r *CardRepository) FetchGameCardsByUUIDs(ctx context.Context, uuids []string) ([]*domain.Card, error) {
 	rows, err := r.q.GetCardsByUUIDs(ctx, uuids)
 	if err != nil {
 		return nil, err
 	}
-	cards := make([]*domainCard.Card, len(rows))
+	cards := make([]*domain.Card, len(rows))
 	for i, m := range rows {
 		cards[i] = toCard(m)
 	}

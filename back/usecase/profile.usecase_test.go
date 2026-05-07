@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/mock/gomock"
 
-	domainProfile "github.com/topi0247/hitori/domain/profile"
+	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase"
 	repositorymock "github.com/topi0247/hitori/usecase/repository/mock"
 )
@@ -26,9 +26,9 @@ func TestCreateProfile_Success(t *testing.T) {
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
-		Return(nil, domainProfile.ErrNotFound)
+		Return(nil, domain.ErrNotFound)
 	profileRepository.EXPECT().Create(ctx, "user-uuid", "たろう").
-		Return(&domainProfile.Profile{AuthUserID: "user-uuid", UserName: "たろう"}, nil)
+		Return(&domain.Profile{AuthUserID: "user-uuid", UserName: "たろう"}, nil)
 
 	out, err := uc.Create(ctx, usecase.CreateProfileInput{
 		AuthUserID: "user-uuid",
@@ -50,14 +50,14 @@ func TestCreateProfile_AlreadyExists(t *testing.T) {
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
-		Return(&domainProfile.Profile{UserName: "既存"}, nil)
+		Return(&domain.Profile{UserName: "既存"}, nil)
 
 	_, err := uc.Create(ctx, usecase.CreateProfileInput{
 		AuthUserID: "user-uuid",
 		UserName:   "たろう",
 	})
-	if !errors.Is(err, domainProfile.ErrAlreadyExists) {
-		t.Errorf("wantErr=%v, got=%v", domainProfile.ErrAlreadyExists, err)
+	if !errors.Is(err, domain.ErrAlreadyExists) {
+		t.Errorf("wantErr=%v, got=%v", domain.ErrAlreadyExists, err)
 	}
 }
 
@@ -69,14 +69,14 @@ func TestCreateProfile_InvalidUserName(t *testing.T) {
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
-		Return(nil, domainProfile.ErrNotFound)
+		Return(nil, domain.ErrNotFound)
 
 	_, err := uc.Create(ctx, usecase.CreateProfileInput{
 		AuthUserID: "user-uuid",
 		UserName:   "",
 	})
-	if !errors.Is(err, domainProfile.ErrInvalidUserName) {
-		t.Errorf("wantErr=%v, got=%v", domainProfile.ErrInvalidUserName, err)
+	if !errors.Is(err, domain.ErrInvalidUserName) {
+		t.Errorf("wantErr=%v, got=%v", domain.ErrInvalidUserName, err)
 	}
 }
 
@@ -88,7 +88,7 @@ func TestGetProfile_Success(t *testing.T) {
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
-		Return(&domainProfile.Profile{UserName: "たろう"}, nil)
+		Return(&domain.Profile{UserName: "たろう"}, nil)
 
 	out, err := uc.Get(ctx, "user-uuid")
 	if err != nil {
@@ -107,7 +107,7 @@ func TestGetProfile_NotFound(t *testing.T) {
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
-		Return(nil, domainProfile.ErrNotFound)
+		Return(nil, domain.ErrNotFound)
 
 	_, err := uc.Get(ctx, "user-uuid")
 	if err == nil {
@@ -123,7 +123,7 @@ func TestUpdateProfile_Success(t *testing.T) {
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
-		Return(&domainProfile.Profile{UserName: "たろう"}, nil)
+		Return(&domain.Profile{UserName: "たろう"}, nil)
 	profileRepository.EXPECT().UpdateUserName(ctx, "user-uuid", "じろう").Return(nil)
 
 	out, err := uc.Update(ctx, usecase.UpdateProfileInput{
@@ -146,14 +146,14 @@ func TestUpdateProfile_InvalidUserName(t *testing.T) {
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
-		Return(&domainProfile.Profile{UserName: "たろう"}, nil)
+		Return(&domain.Profile{UserName: "たろう"}, nil)
 
 	_, err := uc.Update(ctx, usecase.UpdateProfileInput{
 		AuthUserID: "user-uuid",
 		UserName:   "あいうえおかきくけこさ", // 11文字
 	})
-	if !errors.Is(err, domainProfile.ErrInvalidUserName) {
-		t.Errorf("wantErr=%v, got=%v", domainProfile.ErrInvalidUserName, err)
+	if !errors.Is(err, domain.ErrInvalidUserName) {
+		t.Errorf("wantErr=%v, got=%v", domain.ErrInvalidUserName, err)
 	}
 }
 
@@ -165,7 +165,7 @@ func TestDeleteProfile_Success(t *testing.T) {
 	ctx := context.Background()
 
 	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-uuid").
-		Return(&domainProfile.Profile{UserName: "たろう"}, nil)
+		Return(&domain.Profile{UserName: "たろう"}, nil)
 	profileRepository.EXPECT().Delete(ctx, "user-uuid").Return(nil)
 
 	if err := uc.Delete(ctx, "user-uuid"); err != nil {

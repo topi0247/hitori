@@ -1,4 +1,4 @@
-package card
+package domain
 
 import "errors"
 
@@ -9,6 +9,9 @@ var (
 	ErrOwnerRequired         = errors.New("owner_required")
 	ErrAlreadyConfirmed      = errors.New("already_confirmed")
 	ErrThemeCardLimitReached = errors.New("theme_card_limit_reached")
-	ErrNotFound              = errors.New("not_found")
 	ErrForbidden             = errors.New("forbidden")
+	ErrInvalidUserName       = errors.New("invalid_user_name")
+	ErrAlreadyExists         = errors.New("already_exists")
+	ErrInvalidTitle          = errors.New("invalid_title")
+	ErrNotFound              = errors.New("not_found")
 )

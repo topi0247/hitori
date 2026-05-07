@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	theme "github.com/topi0247/hitori/domain/theme"
+	domain "github.com/topi0247/hitori/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,10 +42,10 @@ func (m *MockThemeRepository) EXPECT() *MockThemeRepositoryMockRecorder {
 }
 
 // FetchAll mocks base method.
-func (m *MockThemeRepository) FetchAll(ctx context.Context) ([]*theme.Theme, error) {
+func (m *MockThemeRepository) FetchAll(ctx context.Context) ([]*domain.Theme, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchAll", ctx)
-	ret0, _ := ret[0].([]*theme.Theme)
+	ret0, _ := ret[0].([]*domain.Theme)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -57,10 +57,10 @@ func (mr *MockThemeRepositoryMockRecorder) FetchAll(ctx any) *gomock.Call {
 }
 
 // FetchByID mocks base method.
-func (m *MockThemeRepository) FetchByID(ctx context.Context, id int64) (*theme.Theme, error) {
+func (m *MockThemeRepository) FetchByID(ctx context.Context, id int64) (*domain.Theme, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchByID", ctx, id)
-	ret0, _ := ret[0].(*theme.Theme)
+	ret0, _ := ret[0].(*domain.Theme)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -1,4 +1,4 @@
-package card
+package domain
 
 const MaxCardsPerTheme = 100
 

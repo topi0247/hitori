@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	domainTheme "github.com/topi0247/hitori/domain/theme"
+	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase/repository"
 )
 
@@ -16,7 +16,7 @@ func NewThemeUsecase(repository repository.ThemeRepository) *ThemeUsecase {
 }
 
 type ListOutput struct {
-	Themes []*domainTheme.Theme
+	Themes []*domain.Theme
 }
 
 func (u *ThemeUsecase) List(ctx context.Context) (*ListOutput, error) {

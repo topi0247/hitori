@@ -1,4 +1,4 @@
-package theme
+package domain
 
 import "unicode/utf8"
 
@@ -9,7 +9,7 @@ type Theme struct {
 	Title string
 }
 
-func New(title string) (*Theme, error) {
+func NewTheme(title string) (*Theme, error) {
 	if utf8.RuneCountInString(title) == 0 || utf8.RuneCountInString(title) > MaxTitleLength {
 		return nil, ErrInvalidTitle
 	}

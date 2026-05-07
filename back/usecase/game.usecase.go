@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	domainGame "github.com/topi0247/hitori/domain/game"
+	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase/repository"
 )
 
@@ -13,18 +13,19 @@ var ErrNoAnswers = errors.New("no_answers")
 type GameUsecase struct {
 	cardRepository       repository.CardRepository
 	playRecordRepository repository.PlayRecordRepository
+	profileRepository    repository.ProfileRepository
 }
 
-func NewGameUsecase(cardRepository repository.CardRepository, playRecordRepository repository.PlayRecordRepository) *GameUsecase {
-	return &GameUsecase{cardRepository: cardRepository, playRecordRepository: playRecordRepository}
+func NewGameUsecase(cardRepository repository.CardRepository, playRecordRepository repository.PlayRecordRepository, profileRepository repository.ProfileRepository) *GameUsecase {
+	return &GameUsecase{cardRepository: cardRepository, playRecordRepository: playRecordRepository, profileRepository: profileRepository}
 }
 
 // --- Play ---
 
 type PlayInput struct {
-	ThemeID   int64
-	ProfileID int64
-	Answers   []Answer
+	ThemeID    int64
+	AuthUserID string
+	Answers    []Answer
 }
 
 type Answer struct {
@@ -49,6 +50,11 @@ func (u *GameUsecase) Play(ctx context.Context, input PlayInput) (*PlayOutput, e
 		return nil, ErrNoAnswers
 	}
 
+	profile, err := u.profileRepository.FetchByAuthUserID(ctx, input.AuthUserID)
+	if err != nil {
+		return nil, err
+	}
+
 	uuids := make([]string, len(input.Answers))
 	for i, a := range input.Answers {
 		uuids[i] = a.UUID
@@ -59,17 +65,17 @@ func (u *GameUsecase) Play(ctx context.Context, input PlayInput) (*PlayOutput, e
 		return nil, err
 	}
 
-	entries := make([]domainGame.CardEntry, len(cards))
+	entries := make([]domain.CardEntry, len(cards))
 	for i, c := range cards {
-		entries[i] = domainGame.CardEntry{UUID: c.UUID, CardNumber: c.Number}
+		entries[i] = domain.CardEntry{UUID: c.UUID, CardNumber: c.Number}
 	}
 
-	domainAnswers := make([]domainGame.Answer, len(input.Answers))
+	domainAnswers := make([]domain.GameAnswer, len(input.Answers))
 	for i, a := range input.Answers {
-		domainAnswers[i] = domainGame.Answer{UUID: a.UUID, Order: a.Order}
+		domainAnswers[i] = domain.GameAnswer{UUID: a.UUID, Order: a.Order}
 	}
 
-	result, err := domainGame.Judge(entries, domainAnswers)
+	result, err := domain.Judge(entries, domainAnswers)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +95,7 @@ func (u *GameUsecase) Play(ctx context.Context, input PlayInput) (*PlayOutput, e
 
 	if err := u.playRecordRepository.Save(ctx, &repository.PlayRecord{
 		ThemeID:     input.ThemeID,
-		ProfileID:   input.ProfileID,
+		ProfileID:   profile.ID,
 		CardAmount:  len(cards),
 		CorrectRate: result.CorrectRate,
 	}); err != nil {

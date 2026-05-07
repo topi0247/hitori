@@ -1,4 +1,4 @@
-package card
+package domain
 
 import (
 	"time"
@@ -28,7 +28,7 @@ type Card struct {
 	ExpiresAt   *time.Time
 }
 
-type NewInput struct {
+type NewCardInput struct {
 	ThemeID   int64
 	Number    int
 	Word      string
@@ -37,7 +37,7 @@ type NewInput struct {
 	Now       time.Time
 }
 
-func New(input NewInput) (*Card, error) {
+func NewCard(input NewCardInput) (*Card, error) {
 	if input.Number < MinCardNumber || input.Number > MaxCardNumber {
 		return nil, ErrInvalidCardNumber
 	}

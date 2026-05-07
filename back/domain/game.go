@@ -1,4 +1,4 @@
-package game
+package domain
 
 import (
 	"errors"
@@ -16,7 +16,7 @@ type CardEntry struct {
 	CardNumber int
 }
 
-type Answer struct {
+type GameAnswer struct {
 	UUID  string
 	Order int
 }
@@ -33,8 +33,7 @@ type JudgeResult struct {
 	Cards       []CardResult
 }
 
-func Judge(cards []CardEntry, answers []Answer) (*JudgeResult, error) {
-	// answers の UUID が cards に存在するか確認
+func Judge(cards []CardEntry, answers []GameAnswer) (*JudgeResult, error) {
 	cardMap := make(map[string]CardEntry, len(cards))
 	for _, c := range cards {
 		cardMap[c.UUID] = c
@@ -45,7 +44,6 @@ func Judge(cards []CardEntry, answers []Answer) (*JudgeResult, error) {
 		}
 	}
 
-	// 正解順: card_number 昇順でソートして正解 order を決める
 	sorted := make([]CardEntry, len(cards))
 	copy(sorted, cards)
 	sort.Slice(sorted, func(i, j int) bool {
@@ -56,7 +54,6 @@ func Judge(cards []CardEntry, answers []Answer) (*JudgeResult, error) {
 		correctOrder[c.UUID] = i + 1
 	}
 
-	// ユーザーの order を map に
 	userOrder := make(map[string]int, len(answers))
 	for _, a := range answers {
 		userOrder[a.UUID] = a.Order

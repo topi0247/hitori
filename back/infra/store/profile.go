@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	domainProfile "github.com/topi0247/hitori/domain/profile"
+	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/infra/db/sqlcgen"
 )
 
@@ -18,7 +18,7 @@ func NewProfileRepository(q *sqlcgen.Queries) *ProfileRepository {
 	return &ProfileRepository{q: q}
 }
 
-func (r *ProfileRepository) Create(ctx context.Context, authUserID string, userName string) (*domainProfile.Profile, error) {
+func (r *ProfileRepository) Create(ctx context.Context, authUserID string, userName string) (*domain.Profile, error) {
 	row, err := r.q.InsertProfile(ctx, sqlcgen.InsertProfileParams{
 		AuthUserID: authUserID,
 		UserName:   userName,
@@ -26,22 +26,22 @@ func (r *ProfileRepository) Create(ctx context.Context, authUserID string, userN
 	if err != nil {
 		return nil, err
 	}
-	return &domainProfile.Profile{
+	return &domain.Profile{
 		ID:         row.ID,
 		AuthUserID: row.AuthUserID,
 		UserName:   row.UserName,
 	}, nil
 }
 
-func (r *ProfileRepository) FetchByAuthUserID(ctx context.Context, authUserID string) (*domainProfile.Profile, error) {
+func (r *ProfileRepository) FetchByAuthUserID(ctx context.Context, authUserID string) (*domain.Profile, error) {
 	row, err := r.q.GetProfileByAuthUserID(ctx, authUserID)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, domainProfile.ErrNotFound
+		return nil, domain.ErrNotFound
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &domainProfile.Profile{
+	return &domain.Profile{
 		ID:         row.ID,
 		AuthUserID: row.AuthUserID,
 		UserName:   row.UserName,

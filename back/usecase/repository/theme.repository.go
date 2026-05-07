@@ -5,10 +5,10 @@ package repository
 import (
 	"context"
 
-	domainTheme "github.com/topi0247/hitori/domain/theme"
+	"github.com/topi0247/hitori/domain"
 )
 
 type ThemeRepository interface {
-	FetchAll(ctx context.Context) ([]*domainTheme.Theme, error)
-	FetchByID(ctx context.Context, id int64) (*domainTheme.Theme, error)
+	FetchAll(ctx context.Context) ([]*domain.Theme, error)
+	FetchByID(ctx context.Context, id int64) (*domain.Theme, error)
 }

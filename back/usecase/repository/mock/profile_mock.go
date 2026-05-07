@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	profile "github.com/topi0247/hitori/domain/profile"
+	domain "github.com/topi0247/hitori/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,10 +42,10 @@ func (m *MockProfileRepository) EXPECT() *MockProfileRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockProfileRepository) Create(ctx context.Context, authUserID string, userName string) (*profile.Profile, error) {
+func (m *MockProfileRepository) Create(ctx context.Context, authUserID string, userName string) (*domain.Profile, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, authUserID, userName)
-	ret0, _ := ret[0].(*profile.Profile)
+	ret0, _ := ret[0].(*domain.Profile)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -71,10 +71,10 @@ func (mr *MockProfileRepositoryMockRecorder) Delete(ctx, authUserID any) *gomock
 }
 
 // FetchByAuthUserID mocks base method.
-func (m *MockProfileRepository) FetchByAuthUserID(ctx context.Context, authUserID string) (*profile.Profile, error) {
+func (m *MockProfileRepository) FetchByAuthUserID(ctx context.Context, authUserID string) (*domain.Profile, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchByAuthUserID", ctx, authUserID)
-	ret0, _ := ret[0].(*profile.Profile)
+	ret0, _ := ret[0].(*domain.Profile)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

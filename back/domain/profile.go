@@ -1,4 +1,4 @@
-package profile
+package domain
 
 import "unicode/utf8"
 
@@ -10,7 +10,7 @@ type Profile struct {
 	UserName   string
 }
 
-func New(authUserID, userName string) (*Profile, error) {
+func NewProfile(authUserID, userName string) (*Profile, error) {
 	if utf8.RuneCountInString(userName) == 0 || utf8.RuneCountInString(userName) > MaxUserNameLength {
 		return nil, ErrInvalidUserName
 	}

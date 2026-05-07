@@ -5,12 +5,12 @@ package repository
 import (
 	"context"
 
-	domainProfile "github.com/topi0247/hitori/domain/profile"
+	"github.com/topi0247/hitori/domain"
 )
 
 type ProfileRepository interface {
-	Create(ctx context.Context, authUserID string, userName string) (*domainProfile.Profile, error)
-	FetchByAuthUserID(ctx context.Context, authUserID string) (*domainProfile.Profile, error)
+	Create(ctx context.Context, authUserID string, userName string) (*domain.Profile, error)
+	FetchByAuthUserID(ctx context.Context, authUserID string) (*domain.Profile, error)
 	UpdateUserName(ctx context.Context, authUserID string, userName string) error
 	Delete(ctx context.Context, authUserID string) error
 }

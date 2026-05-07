@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	card "github.com/topi0247/hitori/domain/card"
+	domain "github.com/topi0247/hitori/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -99,10 +99,10 @@ func (mr *MockCardRepositoryMockRecorder) Delete(ctx, id any) *gomock.Call {
 }
 
 // FetchByID mocks base method.
-func (m *MockCardRepository) FetchByID(ctx context.Context, id int64) (*card.Card, error) {
+func (m *MockCardRepository) FetchByID(ctx context.Context, id int64) (*domain.Card, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchByID", ctx, id)
-	ret0, _ := ret[0].(*card.Card)
+	ret0, _ := ret[0].(*domain.Card)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -114,10 +114,10 @@ func (mr *MockCardRepositoryMockRecorder) FetchByID(ctx, id any) *gomock.Call {
 }
 
 // FetchGameCardsByUUIDs mocks base method.
-func (m *MockCardRepository) FetchGameCardsByUUIDs(ctx context.Context, uuids []string) ([]*card.Card, error) {
+func (m *MockCardRepository) FetchGameCardsByUUIDs(ctx context.Context, uuids []string) ([]*domain.Card, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchGameCardsByUUIDs", ctx, uuids)
-	ret0, _ := ret[0].([]*card.Card)
+	ret0, _ := ret[0].([]*domain.Card)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -144,10 +144,10 @@ func (mr *MockCardRepositoryMockRecorder) GetAvailableNumber(ctx, themeID any) *
 }
 
 // GetGameCards mocks base method.
-func (m *MockCardRepository) GetGameCards(ctx context.Context, themeID int64, amount int) ([]*card.Card, error) {
+func (m *MockCardRepository) GetGameCards(ctx context.Context, themeID int64, amount int) ([]*domain.Card, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGameCards", ctx, themeID, amount)
-	ret0, _ := ret[0].([]*card.Card)
+	ret0, _ := ret[0].([]*domain.Card)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -159,7 +159,7 @@ func (mr *MockCardRepositoryMockRecorder) GetGameCards(ctx, themeID, amount any)
 }
 
 // Save mocks base method.
-func (m *MockCardRepository) Save(ctx context.Context, c *card.Card) error {
+func (m *MockCardRepository) Save(ctx context.Context, c *domain.Card) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", ctx, c)
 	ret0, _ := ret[0].(error)

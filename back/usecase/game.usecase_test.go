@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/mock/gomock"
 
-	domainCard "github.com/topi0247/hitori/domain/card"
+	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase"
 	repositorymock "github.com/topi0247/hitori/usecase/repository/mock"
 )
@@ -17,9 +17,12 @@ func TestPlay_Success(t *testing.T) {
 
 	cardRepository := repositorymock.NewMockCardRepository(ctrl)
 	playRecordRepository := repositorymock.NewMockPlayRecordRepository(ctrl)
+	profileRepository := repositorymock.NewMockProfileRepository(ctrl)
 	ctx := context.Background()
 
-	cards := []*domainCard.Card{
+	profileRepository.EXPECT().FetchByAuthUserID(ctx, "user-123").Return(&domain.Profile{ID: 1, AuthUserID: "user-123", UserName: "テスト"}, nil)
+
+	cards := []*domain.Card{
 		{UUID: "a", Number: 10, Word: "アリ"},
 		{UUID: "b", Number: 30, Word: "クジラ"},
 		{UUID: "c", Number: 50, Word: "ゾウ"},
@@ -30,10 +33,10 @@ func TestPlay_Success(t *testing.T) {
 	cardRepository.EXPECT().AddMatchPoints(ctx, "c", 3).Return(nil)
 	playRecordRepository.EXPECT().Save(ctx, gomock.Any()).Return(nil)
 
-	uc := usecase.NewGameUsecase(cardRepository, playRecordRepository)
+	uc := usecase.NewGameUsecase(cardRepository, playRecordRepository, profileRepository)
 	out, err := uc.Play(ctx, usecase.PlayInput{
-		ThemeID:   1,
-		ProfileID: 1,
+		ThemeID:    1,
+		AuthUserID: "user-123",
 		Answers: []usecase.Answer{
 			{UUID: "a", Order: 1},
 			{UUID: "b", Order: 2},
@@ -54,13 +57,14 @@ func TestPlay_NoAnswers(t *testing.T) {
 
 	cardRepository := repositorymock.NewMockCardRepository(ctrl)
 	playRecordRepository := repositorymock.NewMockPlayRecordRepository(ctrl)
+	profileRepository := repositorymock.NewMockProfileRepository(ctrl)
 	ctx := context.Background()
 
-	uc := usecase.NewGameUsecase(cardRepository, playRecordRepository)
+	uc := usecase.NewGameUsecase(cardRepository, playRecordRepository, profileRepository)
 	_, err := uc.Play(ctx, usecase.PlayInput{
-		ThemeID:   1,
-		ProfileID: 1,
-		Answers:   []usecase.Answer{},
+		ThemeID:    1,
+		AuthUserID: "user-123",
+		Answers:    []usecase.Answer{},
 	})
 	if err == nil {
 		t.Error("回答が空の場合はエラーを返すべき")

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	domainCard "github.com/topi0247/hitori/domain/card"
+	"github.com/topi0247/hitori/domain"
 	"github.com/topi0247/hitori/usecase/repository"
 )
 
@@ -54,6 +54,7 @@ type CreateInput struct {
 
 type CreateOutput struct {
 	ID         int64
+	UUID       string
 	CardNumber int
 	Word       string
 }
@@ -67,7 +68,7 @@ func (u *CardUsecase) Create(ctx context.Context, input CreateInput) (*CreateOut
 	if err != nil {
 		return nil, err
 	}
-	if err := domainCard.CanAddCard(count); err != nil {
+	if err := domain.CanAddCard(count); err != nil {
 		return nil, err
 	}
 
@@ -76,7 +77,7 @@ func (u *CardUsecase) Create(ctx context.Context, input CreateInput) (*CreateOut
 		return nil, err
 	}
 
-	c, err := domainCard.New(domainCard.NewInput{
+	c, err := domain.NewCard(domain.NewCardInput{
 		ThemeID:   input.ThemeID,
 		Number:    input.CardNumber,
 		Word:      input.Word,
@@ -94,6 +95,7 @@ func (u *CardUsecase) Create(ctx context.Context, input CreateInput) (*CreateOut
 
 	return &CreateOutput{
 		ID:         c.ID,
+		UUID:       c.UUID,
 		CardNumber: c.Number,
 		Word:       c.Word,
 	}, nil
@@ -158,7 +160,7 @@ func (u *CardUsecase) Delete(ctx context.Context, input DeleteInput) error {
 		return err
 	}
 	if c.IsConfirmed {
-		return domainCard.ErrAlreadyConfirmed
+		return domain.ErrAlreadyConfirmed
 	}
 
 	profileID, err := u.resolveProfileID(ctx, input.AuthUserID)
@@ -198,7 +200,7 @@ type GameCardsInput struct {
 }
 
 type GameCardsOutput struct {
-	Cards []*domainCard.Card
+	Cards []*domain.Card
 }
 
 func (u *CardUsecase) GameCards(ctx context.Context, input GameCardsInput) (*GameCardsOutput, error) {
