@@ -49,9 +49,13 @@ func (u *GameUsecase) Play(ctx context.Context, input PlayInput) (*PlayOutput, e
 		return nil, ErrNoAnswers
 	}
 
-	profile, err := u.profileRepository.FetchByAuthUserID(ctx, input.AuthUserID)
-	if err != nil {
-		return nil, err
+	var profileID *int64
+	if input.AuthUserID != "" {
+		profile, err := u.profileRepository.FetchByAuthUserID(ctx, input.AuthUserID)
+		if err != nil {
+			return nil, err
+		}
+		profileID = &profile.ID
 	}
 
 	uuids := make([]string, len(input.Answers))
@@ -92,13 +96,15 @@ func (u *GameUsecase) Play(ctx context.Context, input PlayInput) (*PlayOutput, e
 		}
 	}
 
-	if err := u.playRecordRepository.Save(ctx, &domain.PlayRecord{
-		ThemeID:     input.ThemeID,
-		ProfileID:   profile.ID,
-		CardAmount:  len(cards),
-		CorrectRate: result.CorrectRate,
-	}); err != nil {
-		return nil, err
+	if profileID != nil {
+		if err := u.playRecordRepository.Save(ctx, &domain.PlayRecord{
+			ThemeID:     input.ThemeID,
+			ProfileID:   *profileID,
+			CardAmount:  len(cards),
+			CorrectRate: result.CorrectRate,
+		}); err != nil {
+			return nil, err
+		}
 	}
 
 	cardResults := make([]PlayCardResult, len(result.Cards))

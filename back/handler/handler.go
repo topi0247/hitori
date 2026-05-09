@@ -39,9 +39,9 @@ func (h *Handlers) SetRoutes(e *echo.Echo, jwtCfg middleware.JWTConfig) {
 	optAuth.POST("/themes/:id/cards", h.Card.Create)
 	optAuth.PATCH("/cards/:id", h.Card.Confirm)
 	optAuth.DELETE("/cards/:id", h.Card.Delete)
+	optAuth.POST("/play_records", h.Game.Play)
 
 	auth := e.Group("", middleware.JWT(jwtCfg))
-	auth.POST("/play_records", h.Game.Play)
 	auth.POST("/profile", h.Profile.Create)
 	auth.GET("/profile", h.Profile.Get)
 	auth.PATCH("/profile", h.Profile.Update)
