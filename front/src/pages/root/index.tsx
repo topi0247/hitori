@@ -811,19 +811,6 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
 
       {step === "config" && (
         <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-6">
-          {!session && (
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">ゲスト名（10文字以内）</label>
-              <input
-                type="text"
-                placeholder="名前を入力"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                maxLength={10}
-                className={textInput()}
-              />
-            </div>
-          )}
           <div className="flex flex-col gap-2">
             {probeLoading ? (
               <p className="text-sm opacity-40">読み込み中...</p>
@@ -850,7 +837,7 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
           <button
             type="button"
             onClick={() => setStep("word")}
-            disabled={!canPlay || probeLoading || (!session && !guestName.trim())}
+            disabled={!canPlay || probeLoading}
             className={btn({ class: "mt-auto" })}
           >
             はじめる
@@ -870,6 +857,19 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
             <p className="self-start text-sm font-medium">あなたの数字</p>
             <PlayingCard number={cardLoading ? null : (availableCard?.card_number ?? null)} />
           </div>
+          {!session && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">ゲスト名（10文字以内）</label>
+              <input
+                type="text"
+                placeholder="名前を入力"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                maxLength={10}
+                className={textInput()}
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">あなたの言葉（25文字以内）</label>
             <input
@@ -885,7 +885,7 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
           <button
             type="button"
             onClick={handleSubmitWord}
-            disabled={!word.trim() || cardLoading || submitting}
+            disabled={!word.trim() || cardLoading || submitting || (!session && !guestName.trim())}
             className={btn({ class: "mt-auto" })}
           >
             {submitting ? "登録中..." : "次へ"}
