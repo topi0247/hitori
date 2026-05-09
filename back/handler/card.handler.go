@@ -89,6 +89,7 @@ func (h *CardHandler) Create(c *echo.Context) error {
 	}
 	return c.JSON(http.StatusCreated, map[string]any{
 		"id":          out.ID,
+		"uuid":        out.UUID,
 		"card_number": out.CardNumber,
 		"word":        out.Word,
 	})

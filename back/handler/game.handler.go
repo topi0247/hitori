@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v5"
 
+	"github.com/topi0247/hitori/handler/middleware"
 	"github.com/topi0247/hitori/usecase"
 )
 
@@ -18,9 +20,8 @@ func NewGameHandler(usecase *usecase.GameUsecase) *GameHandler {
 
 func (h *GameHandler) Play(c *echo.Context) error {
 	var req struct {
-		ThemeID   int64 `json:"theme_id"`
-		ProfileID int64 `json:"profile_id"`
-		Answers   []struct {
+		ThemeID int64 `json:"theme_id"`
+		Answers []struct {
 			UUID  string `json:"uuid"`
 			Order int    `json:"order"`
 		} `json:"answers"`
@@ -35,11 +36,12 @@ func (h *GameHandler) Play(c *echo.Context) error {
 	}
 
 	out, err := h.usecase.Play(c.Request().Context(), usecase.PlayInput{
-		ThemeID:   req.ThemeID,
-		ProfileID: req.ProfileID,
-		Answers:   answers,
+		ThemeID:    req.ThemeID,
+		AuthUserID: middleware.AuthUserID(c),
+		Answers:    answers,
 	})
 	if err != nil {
+		log.Printf("[game.Play] error: %v", err)
 		return httpError(err)
 	}
 
