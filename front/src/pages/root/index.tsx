@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { tv } from "tailwind-variants";
 import { sessionAtom } from "@/stores/auth";
-import { useSignInWithEmail, useSignUpWithEmail } from "@/hooks/useAuth";
+import { useSignInWithEmail, useSignUpWithEmail, useSignOut } from "@/hooks/useAuth";
 import { useCreateProfile } from "@/hooks/useProfile";
 import { useThemes } from "@/hooks/useThemes";
 import { useAvailableCard, useConfirmCard, useCreateCard, useGameCards } from "@/hooks/useCards";
@@ -61,6 +61,7 @@ const panelHeader = tv({
 const RootPage = () => {
   const [view, setView] = useState<View>("top");
   const [session] = useAtom(sessionAtom);
+  const { signOut } = useSignOut();
 
   return (
     <div className="relative w-full overflow-hidden" style={{ height: "100svh" }}>
@@ -75,6 +76,7 @@ const RootPage = () => {
           isLoggedIn={!!session}
           onPlay={() => setView("game")}
           onAuth={() => setView("auth")}
+          onSignOut={signOut}
         />
       </div>
 
@@ -103,12 +105,14 @@ const TopPanel = ({
   isLoggedIn,
   onPlay,
   onAuth,
+  onSignOut,
 }: {
   isLoggedIn: boolean;
   onPlay: () => void;
   onAuth: () => void;
+  onSignOut: () => void;
 }) => (
-  <div className="flex h-full flex-col items-center justify-center gap-10 bg-white px-6">
+  <div className="relative flex h-full flex-col items-center justify-center gap-10 bg-white px-6">
     <h1 className="text-5xl font-bold tracking-tight">h「ito」ri</h1>
     <div className="flex w-full max-w-xs flex-col gap-4">
       <button type="button" onClick={onPlay} className={btn()}>
@@ -120,6 +124,15 @@ const TopPanel = ({
         </button>
       )}
     </div>
+    {isLoggedIn && (
+      <button
+        type="button"
+        onClick={onSignOut}
+        className="absolute right-4 bottom-4 text-sm text-gray-400 underline"
+      >
+        ログアウト
+      </button>
+    )}
   </div>
 );
 
@@ -656,6 +669,7 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
   const [playResult, setPlayResult] = useState<PostPlayRecordResponse | null>(null);
   const [editWord, setEditWord] = useState("");
   const [isEditingWord, setIsEditingWord] = useState(false);
+  const [guestName, setGuestName] = useState("");
 
   const [session] = useAtom(sessionAtom);
 
@@ -735,7 +749,12 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
   const handleConfirmWord = async () => {
     if (!playData) return;
     try {
-      await confirmCard({ id: playData.ownCardId, word: editWord, token: session?.access_token });
+      await confirmCard({
+        id: playData.ownCardId,
+        word: editWord,
+        guest_name: session ? undefined : guestName.trim() || undefined,
+        token: session?.access_token,
+      });
       setStep("config");
       setWord("");
       setPlayData(null);
@@ -756,6 +775,7 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
         themeId,
         card_number: availableCard.card_number,
         word: word.trim(),
+        guest_name: session ? undefined : guestName.trim() || undefined,
         token: session?.access_token,
       });
       setPlayData({
@@ -791,6 +811,19 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
 
       {step === "config" && (
         <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-6">
+          {!session && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">ゲスト名（10文字以内）</label>
+              <input
+                type="text"
+                placeholder="名前を入力"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                maxLength={10}
+                className={textInput()}
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             {probeLoading ? (
               <p className="text-sm opacity-40">読み込み中...</p>
@@ -817,7 +850,7 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
           <button
             type="button"
             onClick={() => setStep("word")}
-            disabled={!canPlay || probeLoading}
+            disabled={!canPlay || probeLoading || (!session && !guestName.trim())}
             className={btn({ class: "mt-auto" })}
           >
             はじめる

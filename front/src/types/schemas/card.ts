@@ -31,6 +31,7 @@ export const PostCardResponse = z.object({
 
 export const PatchCardRequest = z.object({
   word,
+  guest_name: z.string().min(1).max(10).optional(),
 });
 
 export const PatchCardResponse = z.object({
