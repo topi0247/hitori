@@ -9,34 +9,42 @@ import type {
   PostCardResponse,
 } from "@/types/schemas/card";
 
-const useAvailableCard = (themeId: number) =>
+const useAvailableCard = (themeId: number, options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["cards", "available", themeId],
     queryFn: () => apiFetch<AvailableCardResponse>(`/themes/${themeId}/cards/available`),
+    enabled: options?.enabled ?? true,
   });
 
-const useGameCards = (themeId: number, cardAmount: number) =>
+const useGameCards = (themeId: number, cardAmount: number, options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["cards", "game", themeId, cardAmount],
     queryFn: () =>
       apiFetch<GameCardsResponse>(`/themes/${themeId}/cards/game?card_amount=${cardAmount}`),
+    enabled: options?.enabled ?? true,
   });
 
 const useCreateCard = () =>
   useMutation({
-    mutationFn: ({ themeId, ...data }: { themeId: number } & PostCardRequest) =>
+    mutationFn: ({
+      themeId,
+      token,
+      ...data
+    }: { themeId: number; token?: string } & PostCardRequest) =>
       apiFetch<PostCardResponse>(`/themes/${themeId}/cards`, {
         method: "POST",
         body: JSON.stringify(data),
+        token,
       }),
   });
 
 const useConfirmCard = () =>
   useMutation({
-    mutationFn: ({ id, ...data }: { id: number } & PatchCardRequest) =>
+    mutationFn: ({ id, token, ...data }: { id: number; token?: string } & PatchCardRequest) =>
       apiFetch<PatchCardResponse>(`/cards/${id}`, {
         method: "PATCH",
         body: JSON.stringify(data),
+        token,
       }),
   });
 

@@ -24,6 +24,7 @@ export const PostCardRequest = z.object({
 
 export const PostCardResponse = z.object({
   id: z.number(),
+  uuid: z.string(),
   card_number: cardNumber,
   word: z.string(),
 });

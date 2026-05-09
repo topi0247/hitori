@@ -14,7 +14,6 @@ const PlayResultCard = z.object({
 
 export const PostPlayRecordRequest = z.object({
   theme_id: z.number(),
-  card_amount: z.number().int().min(4).max(10),
   answers: z.array(Answer).min(1),
 });
 
