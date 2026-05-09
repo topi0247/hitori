@@ -12,7 +12,7 @@ import type { PostPlayRecordResponse } from "@/types/schemas/playRecord";
 
 type View = "top" | "auth" | "game";
 type AuthTab = "login" | "signup";
-type GameStep = "config" | "word" | "play" | "result";
+type GameStep = "config" | "play" | "result";
 
 // ---------------------------------------------------------------------------
 // Variants
@@ -687,14 +687,8 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
   const canPlay = maxAmount >= 4;
   const clampedAmount = Math.max(4, Math.min(cardAmount, maxAmount));
 
-  useEffect(() => {
-    if (!probeLoading && canPlay && maxAmount === 4 && step === "config") {
-      setStep("word");
-    }
-  }, [probeLoading, canPlay, maxAmount, step]);
-
   const { data: availableCard, isLoading: cardLoading } = useAvailableCard(themeId ?? 0, {
-    enabled: step === "word" && themeId !== null,
+    enabled: step === "config" && themeId !== null,
   });
 
   // play フェーズ用: n-1 枚の他プレイヤーカード
@@ -716,21 +710,10 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
   const { mutateAsync: confirmCard, isPending: confirmSubmitting } = useConfirmCard();
 
   const handleBack = () => {
-    if (step === "word") {
-      if (maxAmount === 4) {
-        setWord("");
-        setError(null);
-        setStep("config");
-        onBack();
-      } else {
-        setStep("config");
-        setWord("");
-        setError(null);
-      }
-    } else {
-      setCardAmount(6);
-      onBack();
-    }
+    setCardAmount(6);
+    setWord("");
+    setError(null);
+    onBack();
   };
 
   const handlePlaySubmit = async (answers: PlayAnswer[]) => {
@@ -792,7 +775,6 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
 
   const stepLabel = {
     config: "ゲーム設定",
-    word: "あなたの言葉",
     play: "プレイ中",
     result: "結果",
   }[step];
@@ -811,84 +793,80 @@ const GamePanel = ({ onBack }: { onBack: () => void }) => {
 
       {step === "config" && (
         <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-6">
-          <div className="flex flex-col gap-2">
-            {probeLoading ? (
-              <p className="text-sm opacity-40">読み込み中...</p>
-            ) : !canPlay ? (
-              <p className="text-sm">まだ遊べるカードが足りません</p>
-            ) : (
-              <>
-                <label className="text-sm font-medium">枚数：{clampedAmount}枚</label>
-                <input
-                  type="range"
-                  min={4}
-                  max={maxAmount}
-                  value={clampedAmount}
-                  onChange={(e) => setCardAmount(Number(e.target.value))}
-                  className="w-full accent-black"
-                />
-                <div className="flex justify-between text-xs opacity-40">
-                  <span>4</span>
-                  <span>{maxAmount}</span>
-                </div>
-              </>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setStep("word")}
-            disabled={!canPlay || probeLoading}
-            className={btn({ class: "mt-auto" })}
-          >
-            はじめる
-          </button>
-        </div>
-      )}
-
-      {step === "word" && (
-        <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-6">
           {themes?.themes[0]?.title && (
             <div className="self-start">
               <p className="text-xs opacity-40">お題</p>
               <p className="text-lg font-bold">{themes.themes[0].title}</p>
             </div>
           )}
-          <div className="flex flex-col items-center gap-2">
-            <p className="self-start text-sm font-medium">あなたの数字</p>
-            <PlayingCard number={cardLoading ? null : (availableCard?.card_number ?? null)} />
-          </div>
-          {!session && (
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">ゲスト名（10文字以内）</label>
-              <input
-                type="text"
-                placeholder="名前を入力"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                maxLength={10}
-                className={textInput()}
-              />
-            </div>
+          {probeLoading ? (
+            <p className="text-sm opacity-40">読み込み中...</p>
+          ) : !canPlay ? (
+            <p className="text-sm">まだ遊べるカードが足りません</p>
+          ) : (
+            <>
+              {maxAmount > 4 && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">枚数：{clampedAmount}枚</label>
+                  <input
+                    type="range"
+                    min={4}
+                    max={maxAmount}
+                    value={clampedAmount}
+                    onChange={(e) => setCardAmount(Number(e.target.value))}
+                    className="w-full accent-black"
+                  />
+                  <div className="flex justify-between text-xs opacity-40">
+                    <span>4</span>
+                    <span>{maxAmount}</span>
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col items-center gap-2">
+                <p className="self-start text-sm font-medium">あなたの数字</p>
+                <PlayingCard number={cardLoading ? null : (availableCard?.card_number ?? null)} />
+              </div>
+              {!session && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">ゲスト名（10文字以内）</label>
+                  <input
+                    type="text"
+                    placeholder="名前を入力"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    maxLength={10}
+                    className={textInput()}
+                  />
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">あなたの言葉（25文字以内）</label>
+                <input
+                  type="text"
+                  placeholder="この数字を表す言葉を入力"
+                  value={word}
+                  onChange={(e) => setWord(e.target.value)}
+                  maxLength={25}
+                  className={textInput()}
+                />
+                {error && <p className="text-sm">{error}</p>}
+              </div>
+            </>
           )}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">あなたの言葉（25文字以内）</label>
-            <input
-              type="text"
-              placeholder="この数字を表す言葉を入力"
-              value={word}
-              onChange={(e) => setWord(e.target.value)}
-              maxLength={25}
-              className={textInput()}
-            />
-            {error && <p className="text-sm">{error}</p>}
-          </div>
           <button
             type="button"
             onClick={handleSubmitWord}
-            disabled={!word.trim() || cardLoading || submitting || (!session && !guestName.trim())}
+            disabled={
+              !canPlay ||
+              probeLoading ||
+              cardLoading ||
+              !word.trim() ||
+              submitting ||
+              (!session && !guestName.trim())
+            }
             className={btn({ class: "mt-auto" })}
           >
-            {submitting ? "登録中..." : "次へ"}
+            {submitting ? "登録中..." : "はじめる"}
           </button>
         </div>
       )}
